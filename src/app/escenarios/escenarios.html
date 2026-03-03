@@ -1,3 +1,28 @@
 <p>escenarios works!</p>
 
 <button (click)="getEscenarios()">Get Escenarios</button>
+
+<ol>  <!-- // OrderList -->
+    <li *ngFor="let escenario of escenarios">
+        <span (click)="getEspectaculos(escenario)">
+            {{ escenario.nombre }} - {{ escenario.descripcion }}
+        </span>
+        <ul>  <!-- // UnorderList -->
+            <li *ngFor="let espectaculo of escenario.espectaculos">
+                <span (click)="getEntradas(espectaculo)">
+                    {{ espectaculo.artista }} - {{ espectaculo.fecha }}
+                </span>
+                <span *ngIf="espectaculo.entradas">
+                    Hay {{ espectaculo.entradas.length }} entradas disponibles.
+                </span>
+                <ul *ngIf="espectaculo.entradas">  <!-- // UnorderList -->
+                    <li *ngFor="let entrada of espectaculo.entradas">
+                        <span (click)="getEntradas(espectaculo)">
+                            {{ entrada.estado }} - {{ entrada.precio }}€
+                        </span>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ol>

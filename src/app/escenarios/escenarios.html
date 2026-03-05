@@ -9,19 +9,12 @@
         </span>
         <ul>  <!-- // UnorderList -->
             <li *ngFor="let espectaculo of escenario.espectaculos">
-                <span (click)="getEntradas(espectaculo)">
+                <span (click)="getNumeroDeEntradas(espectaculo)">
                     {{ espectaculo.artista }} - {{ espectaculo.fecha }}
                 </span>
                 <span *ngIf="espectaculo.entradas">
-                    Hay {{ espectaculo.entradas.length }} entradas disponibles.
+                    Hay {{ espectaculo.entradas.total }} entradas y <a (click)="irAComprarEntradas()"> hay {{ espectaculo.entradas.libres }} disponibles. </a>
                 </span>
-                <ul *ngIf="espectaculo.entradas">  <!-- // UnorderList -->
-                    <li *ngFor="let entrada of espectaculo.entradas">
-                        <span (click)="getEntradas(espectaculo)">
-                            {{ entrada.estado }} - {{ entrada.precio }}€
-                        </span>
-                    </li>
-                </ul>
             </li>
         </ul>
     </li>

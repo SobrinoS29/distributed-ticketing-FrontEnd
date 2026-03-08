@@ -1,21 +1,169 @@
-<p>escenarios works!</p>
+<div class="container">
 
-<button (click)="getEscenarios()">Get Escenarios</button>
+    <!-- Logo en el Centro -->
+    <div class="logo-container">
+        <img src="/assets/logo-esiEntradas.png" alt="ESI Entradas Logo" class="logo">
+        <h1 class="page-title">
+            ESI Entradas - Escenarios
+        </h1>
+        <img src="/assets/logo-esiEntradas.png" alt="ESI Entradas Logo" class="logo">
+    </div>
 
-<ol>  <!-- // OrderList -->
-    <li *ngFor="let escenario of escenarios">
-        <span (click)="getEspectaculos(escenario)">
-            {{ escenario.nombre }} - {{ escenario.descripcion }}
-        </span>
-        <ul>  <!-- // UnorderList -->
-            <li *ngFor="let espectaculo of escenario.espectaculos">
-                <span (click)="getNumeroDeEntradas(espectaculo)">
-                    {{ espectaculo.artista }} - {{ espectaculo.fecha }}
-                </span>
-                <span *ngIf="espectaculo.entradas">
-                    Hay {{ espectaculo.entradas.total }} entradas y <a (click)="irAComprarEntradas()"> hay {{ espectaculo.entradas.libres }} disponibles. </a>
-                </span>
-            </li>
-        </ul>
-    </li>
-</ol>
+    <div class="buscador-wrap">
+        <input
+            class="input-buscador"
+            type="text"
+            placeholder="🔍 Buscar escenario por nombre..."
+            [value]="terminoBusqueda"
+            (input)="actualizarBusqueda($event)">
+    </div>
+
+    <!-- Vista normal: mostrar todos los escenarios en grid -->
+    <div class="escenarios-grid" *ngIf="!escenarioSeleccionado">
+
+        <div class="escenario-card"
+            *ngFor="let escenario of escenariosFiltrados"
+            (click)="abrirEscenario(escenario)">
+
+            <div class="image-container">
+
+                <img class="escenario-img"
+                     [src]="getImagenEscenario(escenario)"
+                     (error)="$event.target.src = '/assets/escenario.jpg'">
+
+                <div class="overlay"></div>
+
+                <div class="escenario-title">
+                    {{ escenario.nombre }}
+                </div>
+
+            </div>
+
+            <div class="escenario-content">
+
+                <p class="descripcion">
+                    {{ escenario.descripcion }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Vista centrada: mostrar solo el escenario seleccionado -->
+    <div class="escenario-centrado" *ngIf="escenarioSeleccionado">
+
+        <button class="btn-volver" (click)="cerrarEscenario()">
+            ← Volver a eventos
+        </button>
+
+        <div class="escenario-card-centrado">
+
+            <div class="image-container-centrado">
+
+                <img class="escenario-img"
+                     [src]="getImagenEscenario(escenarioSeleccionado)"
+                     (error)="$event.target.src = '/assets/escenario.jpg'">
+
+                <div class="overlay"></div>
+
+                <div class="escenario-title-centrado">
+                    {{ escenarioSeleccionado.nombre }}
+                </div>
+
+            </div>
+
+            <div class="escenario-content-centrado">
+
+                <p class="descripcion">
+                    {{ escenarioSeleccionado.descripcion }}
+                </p>
+
+                <h2 class="espectaculos-titulo">Espectáculos disponibles</h2>
+
+                <!-- Mostrar mensaje de carga si hay espectáculos todavía -->
+                <div *ngIf="cargandoEspectaculos" class="cargando">
+                    Cargando espectáculos...
+                </div>
+                
+
+                <!-- Mostrar espectáculos cuando estén disponibles -->
+                <div *ngIf="!cargandoEspectaculos && escenarioSeleccionado.espectaculos?.length > 0" class="espectaculos-lista">
+
+                    <div class="espectaculo-card"
+                        *ngFor="let espectaculo of escenarioSeleccionado.espectaculos">
+
+                        <div class="info">
+
+                            <span class="artista">
+                                {{ espectaculo.artista }}
+                            </span>
+
+                            <span class="fecha">
+                                📅 {{ espectaculo.fecha }}
+                            </span>
+
+                        </div>
+
+                        <button class="btn-entradas"
+                                (click)="getNumeroDeEntradas(espectaculo); $event.stopPropagation()">
+                            Ver entradas
+                        </button>
+
+                        <div *ngIf="espectaculo.entradas" class="entradas-info">
+
+                            <span>
+                                🎟 {{ espectaculo.entradas.total }} totales
+                            </span>
+
+                            <span class="libres">
+                                {{ espectaculo.entradas.libres }} disponibles
+                            </span>
+
+                            <button class="btn-comprar"
+                                    (click)="irAComprarEntradas(); $event.stopPropagation()">
+                                Comprar
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Mensaje final: Más eventos próximamente -->
+                    <div class="upcoming-events-card">
+                        <div class="upcoming-content">
+                            <span class="upcoming-icon">✨</span>
+                            <h3 class="upcoming-title">Más eventos próximamente</h3>
+                            <p class="upcoming-subtitle">Estamos preparando sorpresas especiales para ti</p>
+                            <div class="upcoming-dots">
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                                <span class="dot"></span>
+                            </div>
+                        </div>
+                    </div>
+                
+                </div>
+
+                <!-- Mostrar mensaje si no hay espectáculos disponibles -->
+                <div *ngIf="!cargandoEspectaculos && (!escenarioSeleccionado.espectaculos || escenarioSeleccionado.espectaculos.length === 0)" class="cargando">
+                    No hay espectáculos disponibles para este escenario.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<footer class="footer-empresa">
+    <div class="footer-content">
+        <h3 class="footer-title">ESI Entradas S.L.</h3>
+        <p class="footer-line">CIF: B-45871239 | Paseo de la Universidad, 4. 13071 Ciudad Real, España</p>
+        <p class="footer-line">Email: esi@uclm.es | Telefono: +34 926 29 54 29</p>
+        <p class="footer-copy">© 2026 ESI Entradas. Todos los derechos educativos reservados.</p>
+    </div>
+</footer>

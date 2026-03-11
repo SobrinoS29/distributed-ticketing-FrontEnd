@@ -1,25 +1,32 @@
-<p>compra works!</p>
+<div class="payment-container">
+  <div class="payment-header">
+    <h2>Realizar Compra</h2>
+    <p>Completa tu transaccion de forma segura</p>
+  </div>
 
-Importe: <input type="number" [(ngModel)]="importe"> <!-- Campo para ingresar el importe de la compra -->
+  <div class="importe-section">
+    <label for="importe">Importe a pagar</label>
+    <div class="input-wrapper">
+      <input type="number" id="importe" [(ngModel)]="importe" class="input-importe" placeholder="0.00 EUR" min="0" step="0.01">
+    </div>
+    <button (click)="irAlPago()" [disabled]="!canProceedToPayment" class="btn-pago">Continuar al pago</button>
+  </div>
 
-<button (click)="irAlPago()">Ir al Pago</button>
-<!-- Botón para redirigir al componente de preaprarPago() del backend-->
-
-<br>
-
-<div *ngIf="client_secret" , id="payment-info">
-    Datos de la Tarjeta de Crédito:
-</div>
-
-<form id="payment-form" style="display:none">
-    <div id="card-element"></div>
-    <button id="submit">
+  <div *ngIf="client_secret" class="payment-info">
+    <h3>Informacion de la Tarjeta</h3>
+    <form id="payment-form" class="payment-form">
+      <div id="card-element" class="card-element"></div>
+      <button id="submit" type="submit" class="btn-submit">
         <div class="spinner hidden" id="spinner"></div>
-        <span id="button-text">Pay now</span>
-    </button>
-    <p id="card-error" role="alert"></p>
-    <p class="result-message hidden">
-        Payment succeeded, see the result in your
-        <a href="" target="_blank">Stripe dashboard.</a> Refresh the page to pay again.
-    </p>
-</form>
+        <span id="button-text">Completar pago seguro</span>
+      </button>
+      <p id="card-error" role="alert" class="card-error"></p>
+      <p class="security-badge">
+        Transaccion 100% segura encriptada
+      </p>
+      <p class="result-message hidden">
+        Pago realizado correctamente. Tu transaccion se ha procesado exitosamente.
+      </p>
+    </form>
+  </div>
+</div>

@@ -184,9 +184,10 @@ export class Escenarios implements OnInit {
     );
   }
 
-  irAComprarEntradas() {
-    // Aquí iría la lógica para redirigir a la página de compra de entradas, por ejemplo usando el router de Angular
-    this.router.navigate(['/compra']);
+  irASeleccionarEntradas(espectaculo: any, escenario: any) {
+    this.router.navigate(['/seleccionarEntradas'], {
+      queryParams: { espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) }
+    });
   }
 
 }

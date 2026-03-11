@@ -1,0 +1,131 @@
+<section class="seleccion-page">
+	<header class="hero">
+		<p class="eyebrow">ESI Entradas</p>
+		<h1>Selecciona tus entradas</h1>
+		<p class="subtitle">
+			Revisa la información del espectáculo antes de continuar con la elección de butacas:
+			<span class="subtitle-detail">{{ escenario?.descripcion || 'N/D' }}</span>
+		</p>
+	</header>
+
+	<article class="show-card" *ngIf="espectaculo; else sinEspectaculo">
+		<div class="show-main">
+			<p class="badge">Espectáculo seleccionado</p>
+			<h2>{{ espectaculo.artista || 'Sin nombre' }}</h2>
+
+			<div class="meta-grid">
+				<div class="meta-item">
+					<span class="label">Escenario</span>
+					<span class="value">{{ escenario?.nombre || 'Pendiente' }}</span>
+				</div>
+
+				<div class="meta-item">
+					<span class="label">Fecha</span>
+					<span class="value">{{ espectaculo.fecha || 'Pendiente' }}</span>
+				</div>
+			</div>
+		</div>
+
+		<aside class="summary-panel">
+			<h3>Resumen rápido</h3>
+			<p>Entradas totales: {{ espectaculo.entradas?.total ?? 'N/D' }}</p>
+			<p>Disponibles: {{ espectaculo.entradas?.libres ?? 'N/D' }}</p>
+			<button type="button" class="btn-primary" (click)="toggleSelectorZona()">
+				{{ mostrarSelectorZona ? 'Ocultar seleccion' : 'Continuar con selección' }}
+			</button>
+		</aside>
+	</article>
+
+	<section class="stadium-shell" *ngIf="espectaculo && mostrarSelectorZona">
+		<div class="stadium-header">
+			<p class="eyebrow">Mapa de zonas</p>
+			<h2>Elige la zona del estadio</h2>
+			<p class="subtitle stadium-subtitle">Selecciona una de las tres zonas disponibles para continuar con la compra.</p>
+		</div>
+
+		<div class="stadium-card">
+			<div class="stadium-map" aria-label="Selector visual de zonas del estadio">
+				<button
+					type="button"
+					class="zone zone-pista"
+					[class.active]="zonaSeleccionada === 'Pista'"
+					(click)="seleccionarZona('Pista')">
+					<span class="zone-name">Pista</span>
+					<span class="zone-id">Zona 1</span>
+				</button>
+
+				<button
+					type="button"
+					class="zone zone-norte"
+					[class.active]="zonaSeleccionada === 'Zona Norte'"
+					(click)="seleccionarZona('Zona Norte')">
+					<span class="zone-name">Grada Norte</span>
+					<span class="zone-id">Zona 2</span>
+				</button>
+
+				<div class="stage-core" aria-label="Escenario">ESCENARIO</div>
+
+				<button
+					type="button"
+					class="zone zone-sur"
+					[class.active]="zonaSeleccionada === 'Zona Sur'"
+					(click)="seleccionarZona('Zona Sur')">
+					<span class="zone-name">Grada Sur</span>
+					<span class="zone-id">Zona 3</span>
+				</button>
+			</div>
+
+			<div class="selection-summary" *ngIf="zonaSeleccionada; else sinZonaSeleccionada">
+				Zona elegida: <strong>{{ zonaSeleccionada }}</strong>
+			</div>
+
+			<ng-template #sinZonaSeleccionada>
+				<div class="selection-summary muted">Todavia no has seleccionado ninguna zona.</div>
+			</ng-template>
+		</div>
+	</section>
+
+	<section class="zone-detail-shell" *ngIf="espectaculo && mostrarSelectorZona && zonaSeleccionada && zonaInfoActual">
+		<div class="zone-detail-card">
+			<div class="zone-detail-header">
+				<p class="eyebrow">Zona ampliada</p>
+				<h2>{{ zonaInfoActual.nombreVisible }}</h2>
+				<p class="subtitle zone-detail-subtitle">
+					Selecciona el numero de entradas para esta zona.
+                </p>
+			</div>
+
+			<div class="zone-detail-grid">
+				<div class="zone-visual-card">
+					<h3>Vista de la zona</h3>
+					<div class="zone-preview" [class.pista]="zonaSeleccionada === 'Pista'" [class.norte]="zonaSeleccionada === 'Zona Norte'" [class.sur]="zonaSeleccionada === 'Zona Sur'">
+						<span>{{ zonaInfoActual.nombreVisible }}</span>
+					</div>
+					<p class="zone-hint">Aqui podras pintar filas/butacas reales cuando conectes el servicio.</p>
+				</div>
+
+				<div class="zone-order-card">
+					<h3>Seleccion de entradas</h3>
+					<p>Entradas disponibles: <strong>{{ zonaInfoActual.disponibles }}</strong></p>
+					<p>Precio unitario estimado: <strong>{{ zonaInfoActual.precioUnitario }} EUR</strong></p>
+
+					<div class="qty-control" aria-label="Selector de cantidad de entradas">
+						<button type="button" class="qty-btn" (click)="decrementarCantidad()" [disabled]="cantidadEntradas <= 1">-</button>
+						<span class="qty-value">{{ cantidadEntradas }}</span>
+						<button type="button" class="qty-btn" (click)="incrementarCantidad()" [disabled]="cantidadEntradas >= maxEntradasSeleccionables">+</button>
+					</div>
+
+					<p class="qty-limit">Maximo por compra: {{ maxEntradasSeleccionables }}</p>
+					<p class="total-estimate">Total estimado: {{ precioTotalEstimado }} EUR</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<ng-template #sinEspectaculo>
+		<article class="show-card empty">
+			<h2>No se ha recibido ningún espectáculo</h2>
+			<p>Vuelve a la pantalla anterior y selecciona un espectáculo para continuar.</p>
+		</article>
+	</ng-template>
+</section>

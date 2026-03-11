@@ -1,0 +1,464 @@
+.seleccion-page {
+	--bg: #f3f6fb;
+	--surface: #ffffff;
+	--surface-soft: #f7f9fc;
+	--text: #1a2433;
+	--text-soft: #5d6a7d;
+	--accent: #0f6cbd;
+	--accent-strong: #0a4f8a;
+	--border: #dbe4ef;
+	--shadow: 0 24px 60px -30px rgba(15, 53, 92, 0.45);
+
+	min-height: 100vh;
+	padding: 40px 20px;
+	background:
+		linear-gradient(180deg, rgba(175, 208, 251, 0.9), rgba(243, 246, 251, 0.95)),
+		radial-gradient(circle at 12% 10%, rgba(15, 108, 189, 0.12) 0 170px, transparent 171px),
+		radial-gradient(circle at 88% 85%, rgba(10, 79, 138, 0.1) 0 200px, transparent 201px),
+		url('/assets/concert.jpg') center / cover fixed no-repeat,
+		var(--bg);
+	color: var(--text);
+}
+
+.hero {
+	max-width: 1050px;
+	margin: 0 auto 24px;
+}
+
+.eyebrow {
+	margin: 0 0 10px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--accent);
+}
+
+.hero h1 {
+	margin: 0;
+	font-size: clamp(1.8rem, 3vw, 2.6rem);
+	line-height: 1.1;
+}
+
+.subtitle {
+	margin: 12px 0 0;
+	max-width: 760px;
+	font-size: 1rem;
+	color: var(--text-soft);
+}
+
+.subtitle-detail {
+	display: block;
+	margin-top: 8px;
+	padding-left: 24px;
+}
+
+.show-card {
+	max-width: 1050px;
+	margin: 0 auto;
+	padding: 28px;
+	border: 1px solid var(--border);
+	border-radius: 20px;
+	background: var(--surface);
+	box-shadow: var(--shadow);
+	display: grid;
+	grid-template-columns: 1.4fr 1fr;
+	gap: 22px;
+}
+
+.badge {
+	margin: 0;
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: rgba(15, 108, 189, 0.12);
+	color: var(--accent-strong);
+	font-size: 0.8rem;
+	font-weight: 600;
+}
+
+.show-main h2 {
+	margin: 14px 0 18px;
+	font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+	line-height: 1.2;
+}
+
+.meta-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.meta-item {
+	display: grid;
+	gap: 4px;
+	padding: 14px;
+	border-radius: 12px;
+	border: 1px solid var(--border);
+	background: var(--surface-soft);
+}
+
+.label {
+	font-size: 0.76rem;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: var(--text-soft);
+}
+
+.value {
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.summary-panel {
+	border-radius: 14px;
+	border: 1px solid var(--border);
+	background: linear-gradient(180deg, #f9fcff, #edf5fd);
+	padding: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.summary-panel h3 {
+	margin: 0;
+	font-size: 1.05rem;
+}
+
+.summary-panel p {
+	margin: 0;
+	color: #233247;
+}
+
+.btn-primary {
+	margin-top: auto;
+	border: 0;
+	border-radius: 10px;
+	padding: 11px 16px;
+	font-weight: 700;
+	background: var(--accent);
+	color: #fff;
+	cursor: pointer;
+	transition: transform 120ms ease, background-color 120ms ease;
+}
+
+.btn-primary:hover {
+	background: var(--accent-strong);
+	transform: translateY(-1px);
+}
+
+.stadium-shell {
+	max-width: 1050px;
+	margin: 24px auto 0;
+}
+
+.stadium-header {
+	margin-bottom: 16px;
+}
+
+.stadium-subtitle {
+	max-width: 640px;
+}
+
+.stadium-card {
+	position: relative;
+	padding: 26px;
+	border: 1px solid var(--border);
+	border-radius: 24px;
+	background: linear-gradient(180deg, #ffffff, #f6faff);
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+
+.stadium-card::before {
+	content: '';
+	position: absolute;
+	inset: auto -8% -40% -8%;
+	height: 72%;
+	background: radial-gradient(circle at center, rgba(15, 108, 189, 0.09), transparent 68%);
+	pointer-events: none;
+}
+
+.stadium-map {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(280px, 1.1fr) minmax(220px, 1fr);
+	grid-template-rows: 110px 140px 110px;
+	grid-template-areas:
+		'norte norte'
+		'pista stage'
+		'sur sur';
+	gap: 16px;
+	padding: 16px 0 6px;
+	align-items: stretch;
+}
+
+.zone {
+	position: relative;
+	border: 0;
+	cursor: pointer;
+	transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+	color: #102033;
+	font: inherit;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	box-shadow: 0 16px 32px -24px rgba(16, 32, 51, 0.7);
+}
+
+.zone:hover {
+	transform: translateY(-2px) scale(1.01);
+	filter: saturate(1.04);
+}
+
+.zone:focus-visible {
+	outline: 3px solid rgba(15, 108, 189, 0.35);
+	outline-offset: 3px;
+}
+
+.zone.active {
+	box-shadow: 0 0 0 4px rgba(15, 108, 189, 0.16), 0 18px 34px -22px rgba(16, 32, 51, 0.75);
+	transform: translateY(-2px);
+}
+
+.zone-name {
+	font-size: 1.05rem;
+	font-weight: 700;
+}
+
+.zone-id {
+	font-size: 0.82rem;
+	color: #42536a;
+}
+
+.zone-norte,
+.zone-sur {
+	width: 100%;
+	height: 100%;
+	border-radius: 999px;
+	background: linear-gradient(180deg, #dfeefe, #c8def7);
+	border: 1px solid #b7d0ed;
+}
+
+.zone-pista {
+	grid-area: pista;
+	width: 100%;
+	height: 100%;
+	border-radius: 28px;
+	background: linear-gradient(180deg, #ffe9bf, #ffd88a);
+	border: 1px solid #f2c867;
+}
+
+.zone-norte {
+	grid-area: norte;
+}
+
+.zone-sur {
+	grid-area: sur;
+}
+
+.stage-core {
+	grid-area: stage;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 16px;
+	background: #132238;
+	color: #fff;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	box-shadow: 0 12px 26px -20px rgba(16, 32, 51, 0.95);
+}
+
+.selection-summary {
+	margin-top: 18px;
+	padding: 14px 16px;
+	border-radius: 12px;
+	background: #eef5fd;
+	border: 1px solid #d0e0f2;
+	color: #17304c;
+	font-weight: 600;
+	text-align: center;
+}
+
+.selection-summary.muted {
+	font-weight: 500;
+	color: var(--text-soft);
+	background: #f8fafc;
+	border-color: var(--border);
+}
+
+.zone-detail-shell {
+	max-width: 1050px;
+	margin: 24px auto 0;
+}
+
+.zone-detail-card {
+	padding: 24px;
+	border: 1px solid var(--border);
+	border-radius: 24px;
+	background: linear-gradient(180deg, #ffffff, #f7fbff);
+	box-shadow: var(--shadow);
+}
+
+.zone-detail-header {
+	margin-bottom: 16px;
+}
+
+.zone-detail-subtitle {
+	max-width: 720px;
+}
+
+.zone-detail-grid {
+	display: grid;
+	grid-template-columns: 1.1fr 1fr;
+	gap: 16px;
+}
+
+.zone-visual-card,
+.zone-order-card {
+	padding: 18px;
+	border-radius: 16px;
+	border: 1px solid var(--border);
+	background: #fbfdff;
+}
+
+.zone-visual-card h3,
+.zone-order-card h3 {
+	margin: 0 0 12px;
+	font-size: 1.02rem;
+}
+
+.zone-preview {
+	min-height: 170px;
+	border-radius: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.2rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	border: 1px solid transparent;
+}
+
+.zone-preview.pista {
+	background: linear-gradient(180deg, #ffe9bf, #ffd88a);
+	border-color: #f2c867;
+}
+
+.zone-preview.norte,
+.zone-preview.sur {
+	background: linear-gradient(180deg, #dfeefe, #c8def7);
+	border-color: #b7d0ed;
+}
+
+.zone-hint {
+	margin: 10px 0 0;
+	color: var(--text-soft);
+	font-size: 0.92rem;
+}
+
+.zone-order-card p {
+	margin: 0 0 8px;
+	color: #233247;
+}
+
+.qty-control {
+	margin-top: 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px;
+	border-radius: 999px;
+	background: #edf4fc;
+	border: 1px solid #d3e3f4;
+}
+
+.qty-btn {
+	width: 34px;
+	height: 34px;
+	border: 0;
+	border-radius: 50%;
+	background: #0f6cbd;
+	color: #fff;
+	font-size: 1.1rem;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.qty-btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.qty-value {
+	min-width: 24px;
+	text-align: center;
+	font-weight: 700;
+	font-size: 1.05rem;
+}
+
+.qty-limit {
+	margin-top: 10px;
+	font-size: 0.9rem;
+	color: var(--text-soft);
+}
+
+.total-estimate {
+	margin-top: 4px;
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: #0a4f8a;
+}
+
+.empty {
+	display: block;
+	text-align: center;
+}
+
+.empty h2 {
+	margin: 0 0 8px;
+}
+
+.empty p {
+	margin: 0;
+	color: var(--text-soft);
+}
+
+@media (max-width: 900px) {
+	.show-card {
+		grid-template-columns: 1fr;
+		padding: 20px;
+	}
+
+	.stadium-card {
+		padding: 20px;
+	}
+
+	.meta-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.zone-detail-card {
+		padding: 20px;
+	}
+
+	.zone-detail-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.stadium-map {
+		grid-template-columns: 1fr;
+		grid-template-rows: 120px 86px 86px 86px;
+		grid-template-areas:
+			'norte'
+			'pista'
+			'stage'
+			'sur';
+	}
+}

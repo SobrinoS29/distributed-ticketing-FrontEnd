@@ -298,6 +298,158 @@
   display: none;
 }
 
+  /* ─── Success Section ─────────────────────────────────────── */
+
+  .success-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .success-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.5rem;
+  }
+
+  .checkmark-svg {
+    width: 80px;
+    height: 80px;
+    stroke: var(--success-color);
+    stroke-width: 2;
+  }
+
+  .checkmark-circle {
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    stroke-width: 2;
+    fill: rgba(16, 185, 129, 0.1);
+    animation: strokeDraw 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+  }
+
+  .checkmark-check {
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    animation: strokeDraw 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
+  }
+
+  @keyframes strokeDraw {
+    100% { stroke-dashoffset: 0; }
+  }
+
+  .success-title {
+    color: #1e293b;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 0.5rem 0;
+  }
+
+  .success-subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+    text-align: center;
+    margin: 0 0 2rem 0;
+  }
+
+  .success-details {
+    width: 100%;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .detail-row:last-child {
+    border-bottom: none;
+  }
+
+  .detail-label {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .detail-value {
+    color: #1e293b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-all;
+  }
+
+  .detail-value.highlight {
+    color: var(--success-color);
+    font-size: 1.05rem;
+  }
+
+  .detail-value.monospace {
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    color: #475569;
+  }
+
+  .detail-value.status-ok {
+    color: var(--success-color);
+  }
+
+  .success-email-notice {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 10px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .email-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .email-title {
+    color: #1e293b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin: 0 0 0.4rem 0;
+  }
+
+  .email-body {
+    color: #64748b;
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .success-footer {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    text-align: center;
+    line-height: 1.6;
+    margin: 0;
+  }
+
 .spinner {
   color: #ffffff;
   font-size: 22px;

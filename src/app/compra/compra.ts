@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { PagosService } from '../pagos.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -16,8 +16,13 @@ export class Compra {
   client_secret? : string = '';  // A lo mejor tiene valor o no (undefined)
   importe : number = 0;  // Variable para almacenar el importe de la compra
   stripe = Stripe("pk_test_51T92b1A0bERckX0t3nSgqPZeWpC5uTSUeKjbX91H2AvRUYI9nKbFtyg8iGQ9GuLlCCSZMIhG1Ow52R3FlOWi4RoR00vIX3R5jG");  // Reemplaza con tu clave pública de Stripe
+  
   private card: any = null;
   private formInitialized: boolean = false;
+  
+  pagoExitoso: boolean = false;
+  paymentIntentId: string = '';
+  fechaPago: string = '';
 
   private stripeStyles = {  // Configuración de estilos para Stripe
     base: {
@@ -36,7 +41,7 @@ export class Compra {
     }
   };
 
-  constructor(private pagosService: PagosService) {}
+  constructor(private pagosService: PagosService, private cdr: ChangeDetectorRef) {}
 
   get canProceedToPayment(): boolean {
     return this.importe > 0;
@@ -54,6 +59,7 @@ export class Compra {
     this.pagosService.prepararPago(infoPago).subscribe({
       next: (response: string) => {
         this.client_secret = response;  // Almacenar el client_secret recibido del backend
+        this.cdr.detectChanges();  // Forzar renderizado del *ngIf antes de montar Stripe
         this.initializeStripeForm();
       // Aquí puedes manejar la respuesta del backend, como redirigir a una página de confirmación o mostrar un mensaje al usuario.
     }, error: (error: any) => {
@@ -132,8 +138,12 @@ export class Compra {
   private confirmarPagoEnBackend(paymentIntent: any): void {
     this.pagosService.confirmarPago(paymentIntent).subscribe(
       (response: any) => {
-        console.log('Pago confirmado en el backend:', response);
-        this.mostrarMensajeExito();
+        if(response === 1) {
+            this.paymentIntentId = paymentIntent.id ?? '';
+            this.fechaPago = new Date().toLocaleString('es-ES');
+            this.mostrarMensajeExito();
+        } else
+          console.error('Error al confirmar el pago en el backend. Respuesta no valida:', response);
       },
       (error: any) => {
         console.error('Error al confirmar el pago en el backend:', error);
@@ -142,10 +152,8 @@ export class Compra {
   }
 
   private mostrarMensajeExito(): void {
-    const resultMessage = document.querySelector('.result-message');
-    if (resultMessage) {
-      resultMessage.classList.remove('hidden');
-    }
+    this.pagoExitoso = true;
+    this.cdr.detectChanges();
   }
 
 }

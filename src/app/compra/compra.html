@@ -1,32 +1,81 @@
 <div class="payment-container">
-  <div class="payment-header">
-    <h2>Realizar Compra</h2>
-    <p>Completa tu transaccion de forma segura</p>
-  </div>
 
-  <div class="importe-section">
-    <label for="importe">Importe a pagar</label>
-    <div class="input-wrapper">
-      <input type="number" id="importe" [(ngModel)]="importe" class="input-importe" placeholder="0.00 EUR" min="0" step="0.01">
+  <!-- Formulario de compra (oculto tras el pago exitoso) -->
+  <ng-container *ngIf="!pagoExitoso">
+    <div class="payment-header">
+      <h2>Realizar Compra</h2>
+      <p>Completa tu transaccion de forma segura</p>
     </div>
-    <button (click)="irAlPago()" [disabled]="!canProceedToPayment" class="btn-pago">Continuar al pago</button>
+
+    <div class="importe-section">
+      <label for="importe">Importe a pagar</label>
+      <div class="input-wrapper">
+        <input type="number" id="importe" [(ngModel)]="importe" class="input-importe" placeholder="0.00 EUR" min="0" step="0.01">
+      </div>
+      <button (click)="irAlPago()" [disabled]="!canProceedToPayment" class="btn-pago">Continuar al pago</button>
+    </div>
+
+    <div *ngIf="client_secret" class="payment-info">
+      <h3>🔒 Informacion de la Tarjeta</h3>
+      <form id="payment-form" class="payment-form">
+        <div id="card-element" class="card-element"></div>
+        <button id="submit" type="submit" class="btn-submit">
+          <div class="spinner hidden" id="spinner"></div>
+          <span id="button-text">Completar pago seguro</span>
+        </button>
+        <p id="card-error" role="alert" class="card-error"></p>
+        <p class="security-badge">🔐 Transaccion 100% segura y encriptada</p>
+      </form>
+    </div>
+  </ng-container>
+
+  <!-- Pantalla de pago exitoso -->
+  <div *ngIf="pagoExitoso" class="success-container">
+    <div class="success-icon">
+      <svg viewBox="0 0 52 52" class="checkmark-svg">
+        <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+      </svg>
+    </div>
+
+    <h2 class="success-title">¡Pago realizado con éxito!</h2>
+    <p class="success-subtitle">Tu transacción ha sido procesada correctamente y de forma segura.</p>
+
+    <div class="success-details">
+      <div class="detail-row">
+        <span class="detail-label">Importe pagado</span>
+        <span class="detail-value highlight">{{ importe | currency:'EUR':'symbol':'1.2-2' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Referencia de pago</span>
+        <span class="detail-value monospace">{{ paymentIntentId }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Fecha y hora</span>
+        <span class="detail-value">{{ fechaPago }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Estado</span>
+        <span class="detail-value status-ok">Confirmado ✓</span>
+      </div>
+    </div>
+
+    <div class="success-email-notice">
+      <div class="email-icon">✉</div>
+      <div>
+        <p class="email-title">Entradas enviadas a tu correo electrónico</p>
+        <p class="email-body">
+          Tus entradas han sido enviadas a tu dirección de correo electrónico.
+          Por favor, revisa tu bandeja de entrada y, si no las encuentras,
+          comprueba la carpeta de <strong>spam</strong> o correo no deseado.
+        </p>
+      </div>
+    </div>
+
+    <p class="success-footer">
+      Gracias por tu compra. Si tienes cualquier problema, contacta con nuestro
+      servicio de atención al cliente indicando tu referencia de pago.
+    </p>
   </div>
 
-  <div *ngIf="client_secret" class="payment-info">
-    <h3>Informacion de la Tarjeta</h3>
-    <form id="payment-form" class="payment-form">
-      <div id="card-element" class="card-element"></div>
-      <button id="submit" type="submit" class="btn-submit">
-        <div class="spinner hidden" id="spinner"></div>
-        <span id="button-text">Completar pago seguro</span>
-      </button>
-      <p id="card-error" role="alert" class="card-error"></p>
-      <p class="security-badge">
-        Transaccion 100% segura encriptada
-      </p>
-      <p class="result-message hidden">
-        Pago realizado correctamente. Tu transaccion se ha procesado exitosamente.
-      </p>
-    </form>
-  </div>
 </div>

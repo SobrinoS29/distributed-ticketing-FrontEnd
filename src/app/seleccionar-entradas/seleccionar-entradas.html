@@ -48,35 +48,35 @@
 				<button
 					type="button"
 					class="zone zone-pista"
-					[class.active]="zonaSeleccionada === 'Pista'"
-					(click)="seleccionarZona('Pista')">
+					[class.active]="zonaSeleccionada === 1"
+					(click)="seleccionarZona(1)">  <!-- Corresponde a la pista -->
 					<span class="zone-name">Pista</span>
 					<span class="zone-id">Zona 1</span>
 				</button>
-
+	
 				<button
 					type="button"
 					class="zone zone-norte"
-					[class.active]="zonaSeleccionada === 'Zona Norte'"
-					(click)="seleccionarZona('Zona Norte')">
+					[class.active]="zonaSeleccionada === 2"
+					(click)="seleccionarZona(2)">  <!-- Corresponde a la grada norte -->
 					<span class="zone-name">Grada Norte</span>
 					<span class="zone-id">Zona 2</span>
 				</button>
-
+	
 				<div class="stage-core" aria-label="Escenario">ESCENARIO</div>
-
+	
 				<button
 					type="button"
 					class="zone zone-sur"
-					[class.active]="zonaSeleccionada === 'Zona Sur'"
-					(click)="seleccionarZona('Zona Sur')">
+					[class.active]="zonaSeleccionada === 3"
+					(click)="seleccionarZona(3)">  <!-- Corresponde a la grada sur -->
 					<span class="zone-name">Grada Sur</span>
 					<span class="zone-id">Zona 3</span>
 				</button>
 			</div>
 
 			<div class="selection-summary" *ngIf="zonaSeleccionada; else sinZonaSeleccionada">
-				Zona elegida: <strong>{{ zonaSeleccionada }}</strong>
+				Zona elegida: <strong>{{ getZonaNombrePorId(zonaSeleccionada) }}</strong>
 			</div>
 
 			<ng-template #sinZonaSeleccionada>
@@ -98,27 +98,77 @@
 			<div class="zone-detail-grid">
 				<div class="zone-visual-card">
 					<h3>Vista de la zona</h3>
-					<div class="zone-preview" [class.pista]="zonaSeleccionada === 'Pista'" [class.norte]="zonaSeleccionada === 'Zona Norte'" [class.sur]="zonaSeleccionada === 'Zona Sur'">
+					<div class="zone-preview" [class.pista]="zonaSeleccionada === 1" [class.norte]="zonaSeleccionada === 2" [class.sur]="zonaSeleccionada === 3">
 						<span>{{ zonaInfoActual.nombreVisible }}</span>
 					</div>
 					<p class="zone-hint">Aqui podras pintar filas/butacas reales cuando conectes el servicio.</p>
 				</div>
 
 				<div class="zone-order-card">
-					<h3>Seleccion de entradas</h3>
-					<p>Entradas disponibles: <strong>{{ zonaInfoActual.disponibles }}</strong></p>
-					<p>Precio unitario estimado: <strong>{{ zonaInfoActual.precioUnitario }} EUR</strong></p>
+					<h3>Elige tus tickets</h3>
+					<p class="subtitle ticket-subtitle">
+						Seleccionadas: <strong>{{ entradasSeleccionadasCount }}</strong> de {{ entradasDisponiblesEnZonaActual }}
+					</p>
 
-					<div class="qty-control" aria-label="Selector de cantidad de entradas">
-						<button type="button" class="qty-btn" (click)="decrementarCantidad()" [disabled]="cantidadEntradas <= 1">-</button>
-						<span class="qty-value">{{ cantidadEntradas }}</span>
-						<button type="button" class="qty-btn" (click)="incrementarCantidad()" [disabled]="cantidadEntradas >= maxEntradasSeleccionables">+</button>
-					</div>
-
-					<p class="qty-limit">Maximo por compra: {{ maxEntradasSeleccionables }}</p>
-					<p class="total-estimate">Total estimado: {{ precioTotalEstimado }} EUR</p>
+					<p class="qty-limit">(Máximo por compra: {{ maxEntradasSeleccionables }})</p>
+					<br><br><br><br>
+					<p class="total-estimate">Total: {{ precioTotalEstimado }} EUR</p>
+					<button
+						type="button"
+						class="btn-primary"
+						[disabled]="entradasSeleccionadasCount === 0"
+						(click)="irAComprar(obtenerEntradasSeleccionadas())">
+						Comprar
+					</button>
 				</div>
 			</div>
+		</div>
+	</section>
+
+	<section class="ticket-list-shell" *ngIf="espectaculo && mostrarSelectorZona && zonaSeleccionada">
+		<div class="ticket-list-card">
+			<div class="ticket-loading" *ngIf="cargandoEntradasZona">Cargando entradas disponibles...</div>
+
+			<ng-container *ngIf="!cargandoEntradasZona">
+				<div class="ticket-list" *ngIf="ticketsDisponibles.length > 0; else sinEntradasEnZona">
+					<article
+						class="ticket-item"
+						*ngFor="let ticket of ticketsDisponibles; trackBy: trackByEntradaId"
+						[class.selected]="ticket.seleccionada">
+						<div class="ticket-band"></div>
+						<div class="ticket-main">
+							<div class="ticket-top">
+								<p class="ticket-title">{{ espectaculo.artista || 'Espectaculo sin nombre' }}</p>
+								<p class="ticket-price">{{ formatearPrecioEuros(ticket.precioCentimos) }} EUR</p>
+							</div>
+
+							<div class="ticket-meta-grid">
+								<p><span>ID entrada:</span> #{{ ticket.entradaId }}</p>
+								<p><span>Escenario:</span> {{ escenario?.nombre || 'Pendiente' }}</p>
+								<p><span>Zona:</span> {{ getZonaNombrePorId(ticket.zona) }}</p>
+								<p><span>Fecha:</span> {{ espectaculo.fecha || 'Pendiente' }}</p>
+							</div>
+						</div>
+
+						<div class="ticket-action">
+							<button
+								type="button"
+								class="btn-ticket"
+								[class.selected]="ticket.seleccionada"
+								[disabled]="estaBloqueadaSeleccion(ticket)"
+								(click)="toggleSeleccionEntrada(ticket)">
+								{{ ticket.seleccionada ? 'Seleccionada' : 'Seleccionar' }}
+							</button>
+						</div>
+					</article>
+				</div>
+
+				<ng-template #sinEntradasEnZona>
+					<div class="ticket-empty">
+						No hay entradas disponibles para esta zona en este momento.
+					</div>
+				</ng-template>
+			</ng-container>
 		</div>
 	</section>
 

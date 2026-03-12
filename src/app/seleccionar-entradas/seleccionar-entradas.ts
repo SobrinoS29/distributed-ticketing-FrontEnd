@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SeleccionarEntradasService } from '../seleccionar-entradas.service';
+import { stringify } from 'node:querystring';
 
 type Zona = 'Pista' | 'Zona Norte' | 'Zona Sur';
 
@@ -17,6 +18,7 @@ interface EntradaDisponibleTicket {
   espectaculoId: number;
   zona: number;
   seleccionada: boolean;
+  token: string | "";
 }
 
 interface Espectaculo {
@@ -75,6 +77,7 @@ export class SeleccionarEntradas implements OnInit {
 
   entradasDisponiblesByZona: Array<[number, number, number, number]> = []; // [entradaId, precioCentimos, espectaculoId, zona]
   ticketsDisponibles: EntradaDisponibleTicket[] = [];
+  tokenReserva: string = "";  // Variable Token que identifica todas las reservas del mismo cliente en esta sesión
 
   constructor(
     private route: ActivatedRoute,
@@ -142,6 +145,7 @@ export class SeleccionarEntradas implements OnInit {
           espectaculoId: fila[2],
           zona: fila[3],
           seleccionada: false,
+          token: ""
         }));
         this.cargandoEntradasZona = false;
         this.cdr.detectChanges();
@@ -206,7 +210,34 @@ export class SeleccionarEntradas implements OnInit {
       return;
     }
 
-    ticket.seleccionada = !ticket.seleccionada;
+    if(!ticket.seleccionada) {  // Comprobaremos si hay token o no en el backend
+      this.seleccionarEntradasService.reservarEntrada(ticket.entradaId, this.tokenReserva).subscribe(
+        (response: any) => {
+          if (!this.tokenReserva) this.tokenReserva = response;  // Solo se guarda la primera vez
+          ticket.token = response;
+          console.log('Entrada reservada con token:', this.tokenReserva);
+          ticket.seleccionada = true;
+          this.cdr.detectChanges();
+        },
+        (error: any) => {
+          console.error('Error al reservar la entrada:', error);
+        }
+      );
+      return;
+    }
+    else {  // Deseleccionar o liberar entrada lo haremos global para poder usarlo con el timeout también
+      this.seleccionarEntradasService.liberarEntrada(ticket.entradaId, this.tokenReserva).subscribe(
+        (response: any) => {
+          ticket.token = response;
+          console.log('Entrada liberada con token:', this.tokenReserva);
+          ticket.seleccionada = !ticket.seleccionada;
+          this.cdr.detectChanges();
+        },
+        (error: any) => {
+          console.error('Error al liberar la entrada:', error);
+        }
+      );
+    }
   }
 
   estaBloqueadaSeleccion(ticket: EntradaDisponibleTicket): boolean {
@@ -229,6 +260,7 @@ export class SeleccionarEntradas implements OnInit {
         precioCentimos: ticket.precioCentimos,
         espectaculoId: ticket.espectaculoId,
         zona: ticket.zona,
+        token: ticket.token,
       }));
   }
 
@@ -239,7 +271,7 @@ export class SeleccionarEntradas implements OnInit {
 
     this.router.navigate(['/compra'], {
       queryParams: {
-        entradasSeleccionadas: encodeURIComponent(JSON.stringify(entradasSeleccionadas))
+        token: JSON.stringify(this.tokenReserva),  // Enviamos el token de reserva para identificar las entradas reservadas por este cliente
       }
     });
   }

@@ -85,11 +85,11 @@
 		</div>
 	</section>
 
-	<section class="zone-detail-shell" *ngIf="espectaculo && mostrarSelectorZona && zonaSeleccionada && zonaInfoActual">
+	<section class="zone-detail-shell" *ngIf="espectaculo && mostrarSelectorZona && zonaSeleccionada">
 		<div class="zone-detail-card">
 			<div class="zone-detail-header">
 				<p class="eyebrow">Zona ampliada</p>
-				<h2>{{ zonaInfoActual.nombreVisible }}</h2>
+				<h2>{{ getZonaNombrePorId(zonaSeleccionada) }}</h2>
 				<p class="subtitle zone-detail-subtitle">
 					Selecciona el numero de entradas para esta zona.
                 </p>
@@ -99,7 +99,7 @@
 				<div class="zone-visual-card">
 					<h3>Vista de la zona</h3>
 					<div class="zone-preview" [class.pista]="zonaSeleccionada === 1" [class.norte]="zonaSeleccionada === 2" [class.sur]="zonaSeleccionada === 3">
-						<span>{{ zonaInfoActual.nombreVisible }}</span>
+						<span>{{ getZonaNombrePorId(zonaSeleccionada) }}</span>
 					</div>
 					<p class="zone-hint">Aqui podras pintar filas/butacas reales cuando conectes el servicio.</p>
 				</div>

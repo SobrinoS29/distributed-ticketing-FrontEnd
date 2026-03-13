@@ -2,8 +2,21 @@ import { Component, ChangeDetectorRef } from '@angular/core';
 import { PagosService } from '../pagos.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { CompraService } from '../compra.service';
 
 declare let Stripe: any;  // Declaramos Stripe para usarlo en el componente
+
+interface Ticket {
+  entradaId: number;
+  precio: number;
+  zona: number;
+  fila: number;
+  columna: number;
+  planta: number;
+  espectaculoId: number;
+  escenarioId: number;
+}
 
 @Component({
   selector: 'app-compra',
@@ -14,9 +27,12 @@ declare let Stripe: any;  // Declaramos Stripe para usarlo en el componente
 export class Compra {
 
   client_secret? : string = '';  // A lo mejor tiene valor o no (undefined)
-  importe : number = 0;  // Variable para almacenar el importe de la compra
+  importeTotal : number | 0 = 0;
   stripe = Stripe("pk_test_51T92b1A0bERckX0t3nSgqPZeWpC5uTSUeKjbX91H2AvRUYI9nKbFtyg8iGQ9GuLlCCSZMIhG1Ow52R3FlOWi4RoR00vIX3R5jG");  // Reemplaza con tu clave pública de Stripe
   
+  token: string | null = null;
+  ticketsSeleccionados: Ticket[] = [];
+
   private card: any = null;
   private formInitialized: boolean = false;
   
@@ -41,10 +57,69 @@ export class Compra {
     }
   };
 
-  constructor(private pagosService: PagosService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private route: ActivatedRoute,
+    private compraService: CompraService,
+    private pagosService: PagosService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const tokenParam = params.get('token');
+      if (tokenParam) {
+        try {
+          this.token = JSON.parse(decodeURIComponent(tokenParam));
+        } catch (error) {
+          console.error('Error al parsear el token:', error);
+          this.token = null;
+        }
+        this.getEntradasSeleccionadas();
+      } else {
+        console.warn('No se recibió el token.');
+        this.token = null;
+      }
+    });
+  }
+
+  getEntradasSeleccionadas(): void {  // Usaremos el token para obtener cada Ticket (entradaId, precio, zona, fila, columna, planta, espectaculoId, escenarioId)
+    if (!this.token) {
+      console.warn('Token no disponible para obtener entradas.');
+      this.ticketsSeleccionados = [];
+      this.importeTotal = 0;
+      return;
+    }
+
+    this.compraService.getTicketsFromToken(this.token).subscribe(
+      (response: any) => {  // Vamos a recibir un json con la información de cada ticket seleccionado (entradaId, precio, zona, fila, columna, planta, espectaculoId, escenarioId)
+        this.ticketsSeleccionados = response.map((fila: any) => ({ 
+          entradaId: fila[0],
+          precio: fila[1],
+          zona: fila[2],
+          fila: fila[3],
+          columna: fila[4],
+          planta: fila[5],
+          espectaculoId: fila[6],
+          escenarioId: fila[7]
+        }));
+        
+        this.calcularImporteTotal();
+        this.cdr.detectChanges();
+      },
+      (error: any) => {
+        console.error('Error fetching tickets from token:', error);
+        this.ticketsSeleccionados = [];
+        this.importeTotal = 0;
+      }
+    );
+  }
+
+  calcularImporteTotal(): void {
+    this.importeTotal = this.ticketsSeleccionados.reduce((total, ticket) => total + ticket.precio, 0);
+  }
 
   get canProceedToPayment(): boolean {
-    return this.importe > 0;
+    return this.importeTotal > 0;
   }
 
   irAlPago(): void {  // Redirigir al componente de prepararPago() del backend
@@ -53,7 +128,7 @@ export class Compra {
     }
 
     const infoPago = {
-      centimos : Math.floor(this.importe * 100),  // Convertir el importe a céntimos (Stripe trabaja con la unidad más pequeña)
+      centimos : Math.floor(this.importeTotal * 100),  // Convertir el importe a céntimos (Stripe trabaja con la unidad más pequeña)
       // Aquí puedes agregar más información relevante para el pago, como detalles de la compra, usuario, etc.
     };
     this.pagosService.prepararPago(infoPago).subscribe({

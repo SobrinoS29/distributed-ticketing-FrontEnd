@@ -2,15 +2,6 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SeleccionarEntradasService } from '../seleccionar-entradas.service';
-import { stringify } from 'node:querystring';
-
-type Zona = 'Pista' | 'Zona Norte' | 'Zona Sur';
-
-interface ZonaInfo {
-  nombreVisible: string;
-  disponibles: number;
-  precioUnitario: number;
-}
 
 interface EntradaDisponibleTicket {
   entradaId: number;
@@ -57,24 +48,6 @@ export class SeleccionarEntradas implements OnInit {
   cantidadEntradas = 1;
   cargandoEntradasZona = false;
 
-  private readonly zonasInfo: Record<Zona, ZonaInfo> = {
-    Pista: {
-      nombreVisible: 'Pista',
-      disponibles: 120,
-      precioUnitario: 48,
-    },
-    'Zona Norte': {
-      nombreVisible: 'Grada Norte',
-      disponibles: 64,
-      precioUnitario: 35,
-    },
-    'Zona Sur': {
-      nombreVisible: 'Grada Sur',
-      disponibles: 72,
-      precioUnitario: 33,
-    }
-  };
-
   entradasDisponiblesByZona: Array<[number, number, number, number]> = []; // [entradaId, precioCentimos, espectaculoId, zona]
   ticketsDisponibles: EntradaDisponibleTicket[] = [];
   tokenReserva: string = "";  // Variable Token que identifica todas las reservas del mismo cliente en esta sesión
@@ -89,28 +62,19 @@ export class SeleccionarEntradas implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
       const espectaculoParam = params.get('espectaculo');
-      if (espectaculoParam) {
+      const escenarioParam = params.get('escenario');
+      if (espectaculoParam && escenarioParam) {
         try {
           this.espectaculo = JSON.parse(decodeURIComponent(espectaculoParam));
-        } catch (error) {
-          console.error('Error al parsear el espectaculo:', error);
-          this.espectaculo = null;
-        }
-      } else {
-        console.warn('No se recibió el parámetro de espectaculo.');
-        this.espectaculo = null;
-      }
-
-      const escenarioParam = params.get('escenario');
-      if (escenarioParam) {
-        try {
           this.escenario = JSON.parse(decodeURIComponent(escenarioParam));
         } catch (error) {
-          console.error('Error al parsear el escenario:', error);
+          console.error('Error al parsear los parámetros de espectaculo y escenario:', error);
+          this.espectaculo = null;
           this.escenario = null;
         }
       } else {
-        console.warn('No se recibió el parámetro de escenario.');
+        console.warn('No se recibieron los parámetros de espectaculo o escenario.');
+        this.espectaculo = null;
         this.escenario = null;
       }
     });
@@ -159,19 +123,6 @@ export class SeleccionarEntradas implements OnInit {
     );
   }
 
-  get zonaInfoActual(): ZonaInfo | null {
-    if (this.zonaSeleccionada === 1) {
-      return this.zonasInfo.Pista;
-    }
-    if (this.zonaSeleccionada === 2) {
-      return this.zonasInfo['Zona Norte'];
-    }
-    if (this.zonaSeleccionada === 3) {
-      return this.zonasInfo['Zona Sur'];
-    }
-    return null;
-  }
-
   get entradasDisponiblesEnZonaActual(): number {
     return this.ticketsDisponibles.length;
   }
@@ -193,16 +144,16 @@ export class SeleccionarEntradas implements OnInit {
   }
 
   getZonaNombrePorId(zonaId: number | null): string {
-    if (zonaId === 1) {
-      return this.zonasInfo.Pista.nombreVisible;
+    switch (zonaId) {
+      case 1:
+        return 'Pista';
+      case 2:
+        return 'Grada Norte';
+      case 3:
+        return 'Grada Sur';
+      default:
+        return 'Zona no definida';
     }
-    if (zonaId === 2) {
-      return this.zonasInfo['Zona Norte'].nombreVisible;
-    }
-    if (zonaId === 3) {
-      return this.zonasInfo['Zona Sur'].nombreVisible;
-    }
-    return 'Zona no definida';
   }
 
   toggleSeleccionEntrada(ticket: EntradaDisponibleTicket): void {
@@ -271,7 +222,7 @@ export class SeleccionarEntradas implements OnInit {
 
     this.router.navigate(['/compra'], {
       queryParams: {
-        token: JSON.stringify(this.tokenReserva),  // Enviamos el token de reserva para identificar las entradas reservadas por este cliente
+        token: encodeURIComponent(JSON.stringify(this.tokenReserva)),  // Enviamos el token de reserva para identificar las entradas reservadas por este cliente
       }
     });
   }

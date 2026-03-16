@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SeleccionarEntradasService } from '../seleccionar-entradas.service';
+import { LoginService } from '../login.service';
 
 interface EntradaDisponibleTicket {
   entradaId: number;
@@ -41,6 +42,7 @@ interface Escenario {
 export class SeleccionarEntradas implements OnInit {
   private static readonly MAX_ENTRADAS_SELECCIONABLES = 10;
 
+  userToken: string | null = null;
   espectaculo: Espectaculo | null = null;
   escenario: Escenario | null = null;
   mostrarSelectorZona = false;
@@ -55,16 +57,19 @@ export class SeleccionarEntradas implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private seleccionarEntradasService: SeleccionarEntradasService,
+    private loginService: LoginService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
+      const userTokenParam = params.get('userToken');
       const espectaculoParam = params.get('espectaculo');
       const escenarioParam = params.get('escenario');
       if (espectaculoParam && escenarioParam) {
         try {
+          this.userToken = JSON.parse(decodeURIComponent(userTokenParam ?? 'null'));
           this.espectaculo = JSON.parse(decodeURIComponent(espectaculoParam));
           this.escenario = JSON.parse(decodeURIComponent(escenarioParam));
         } catch (error) {
@@ -220,9 +225,27 @@ export class SeleccionarEntradas implements OnInit {
       return;
     }
 
-    this.router.navigate(['/compra'], {
-      queryParams: {
-        token: encodeURIComponent(JSON.stringify(this.tokenReserva)),  // Enviamos el token de reserva para identificar las entradas reservadas por este cliente
+    if (!this.userToken) {  // Iremos a la pagina de login
+      this.irALogin();
+      return;
+    }
+
+    this.loginService.getCheckUserToken(this.userToken).subscribe(  // Comprobaremos primero que el userToken es válido (seguridad)
+      (resposne: any) => {        
+        this.router.navigate(['/compra'], {
+          queryParams: {userToken: this.userToken, ticketToken: encodeURIComponent(JSON.stringify(this.tokenReserva)),  // Enviamos el token de reserva para identificar las entradas reservadas por este cliente
+          }
+        });
+      },
+      (error: any) => {
+        this.irALogin();
+      }
+    );
+  }
+
+  irALogin(): void {
+    this.router.navigate(['/login'], {
+      queryParams: {userToken: this.userToken, ticketToken: encodeURIComponent(JSON.stringify(this.tokenReserva)),
       }
     });
   }

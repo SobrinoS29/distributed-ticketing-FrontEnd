@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { CompraService } from '../compra.service';
+import { Router } from '@angular/router';
 
 declare let Stripe: any;  // Declaramos Stripe para usarlo en el componente
 
@@ -30,7 +31,8 @@ export class Compra {
   importeTotal : number | 0 = 0;
   stripe = Stripe("pk_test_51T92b1A0bERckX0t3nSgqPZeWpC5uTSUeKjbX91H2AvRUYI9nKbFtyg8iGQ9GuLlCCSZMIhG1Ow52R3FlOWi4RoR00vIX3R5jG");  // Reemplaza con tu clave pública de Stripe
   
-  token: string | null = null;
+  userToken: string | null = null;
+  ticketToken: string | null = null;
   ticketsSeleccionados: Ticket[] = [];
 
   private card: any = null;
@@ -61,36 +63,39 @@ export class Compra {
     private route: ActivatedRoute,
     private compraService: CompraService,
     private pagosService: PagosService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
-      const tokenParam = params.get('token');
-      if (tokenParam) {
+      const userTokenParam = params.get('userToken');
+      const ticketTokenParam = params.get('ticketToken');
+      if (ticketTokenParam) {
         try {
-          this.token = JSON.parse(decodeURIComponent(tokenParam));
+          this.userToken = JSON.parse(decodeURIComponent(userTokenParam ?? 'null'));
+          this.ticketToken = JSON.parse(decodeURIComponent(ticketTokenParam ?? 'null'));
         } catch (error) {
           console.error('Error al parsear el token:', error);
-          this.token = null;
+          this.ticketToken = null;
         }
         this.getEntradasSeleccionadas();
       } else {
         console.warn('No se recibió el token.');
-        this.token = null;
+        this.ticketToken = null;
       }
     });
   }
 
   getEntradasSeleccionadas(): void {  // Usaremos el token para obtener cada Ticket (entradaId, precio, zona, fila, columna, planta, espectaculoId, escenarioId)
-    if (!this.token) {
+    if (!this.ticketToken) {
       console.warn('Token no disponible para obtener entradas.');
       this.ticketsSeleccionados = [];
       this.importeTotal = 0;
       return;
     }
 
-    this.compraService.getTicketsFromToken(this.token).subscribe(
+    this.compraService.getTicketsFromToken(this.ticketToken).subscribe(
       (response: any) => {  // Vamos a recibir un json con la información de cada ticket seleccionado (entradaId, precio, zona, fila, columna, planta, espectaculoId, escenarioId)
         this.ticketsSeleccionados = response.map((fila: any) => ({ 
           entradaId: fila[0],
@@ -136,7 +141,6 @@ export class Compra {
         this.client_secret = response;  // Almacenar el client_secret recibido del backend
         this.cdr.detectChanges();  // Forzar renderizado del *ngIf antes de montar Stripe
         this.initializeStripeForm();
-      // Aquí puedes manejar la respuesta del backend, como redirigir a una página de confirmación o mostrar un mensaje al usuario.
     }, error: (error: any) => {
       console.error('Error al preparar el pago:', error);
       // Aquí puedes manejar errores, como mostrar un mensaje de error al usuario.
@@ -217,6 +221,7 @@ export class Compra {
             this.paymentIntentId = paymentIntent.id ?? '';
             this.fechaPago = new Date().toLocaleString('es-ES');
             this.mostrarMensajeExito();
+            this.enviarEmailCompra();
         } else
           console.error('Error al confirmar el pago en el backend. Respuesta no valida:', response);
       },
@@ -231,4 +236,16 @@ export class Compra {
     this.cdr.detectChanges();
   }
 
+  private enviarEmailCompra(): void {
+    this.compraService.enviarEmailCompra(this.userToken, this.ticketsSeleccionados).subscribe(
+      (response: any) => {        
+        this.router.navigate(['/'], {
+          queryParams: {userToken: this.userToken},
+          });
+      },
+      (error: any) => {
+        console.error('Error al enviar el email de compra:', error);
+      }
+    );
+  }
 }

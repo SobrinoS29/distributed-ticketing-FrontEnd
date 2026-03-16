@@ -69,9 +69,42 @@
 /* GRID */
 
 .container{
+    position: relative;
     max-width:1300px;
     margin:auto;
     padding:40px;
+}
+
+.top-actions {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    z-index: 20;
+}
+
+.btn-login {
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.32);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(2, 6, 23, 0.4);
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
+.btn-login:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.55);
+    outline-offset: 2px;
 }
 
 .escenarios-grid{

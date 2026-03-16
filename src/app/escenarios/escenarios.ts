@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { EscenariosService } from '../escenarios.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { LoginService } from '../login.service';
 
 @Component({
   selector: 'app-escenarios',
@@ -13,10 +14,15 @@ import { Router } from '@angular/router';
 
 export class Escenarios implements OnInit {
 
+  userToken: string | null = null;
+  userName: string = '';
   escenarios: any = [];  // Any se usa para unificar el tipo de datos, ya que no se ha definido un modelo específico para escenarios, espectaculos o entradas
   terminoBusqueda: string = '';
   escenarioSeleccionado: any = null;  // Almacena el escenario seleccionado para mostrarlo centrado
   cargandoEspectaculos: boolean = false;  // Indica si se están cargando los espectáculos
+  usuarioLogeado: boolean = false;
+  readonly authTokenStorageKey: string = 'authToken';
+  
 
   get escenariosFiltrados(): any[] {
     const termino = this.terminoBusqueda.trim().toLowerCase();
@@ -30,13 +36,15 @@ export class Escenarios implements OnInit {
   }
   
   ngOnInit(){  // El método ngOnInit se ejecuta una vez que el componente ha sido inicializado, es decir, después de que se han cargado los datos y se han renderizado los elementos en la vista, por lo que es un buen lugar para hacer la llamada a la API para obtener los escenarios, ya que así nos aseguramos de que la vista esté lista para mostrar los datos obtenidos de la API.
+    this.actualizarEstadoLogin();
     this.getEscenarios();
   }
 
   constructor(
     private escenariosService: EscenariosService,
+    private loginService: LoginService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
   ) {}
 
   abrirEscenario(escenario:any, $event?: Event){
@@ -72,6 +80,39 @@ export class Escenarios implements OnInit {
   actualizarBusqueda(event: Event) {
     const input = event.target as HTMLInputElement;
     this.terminoBusqueda = input?.value ?? '';
+  }
+
+  private actualizarEstadoLogin() {
+    if (typeof window === 'undefined') {
+      this.usuarioLogeado = false;
+      return;
+    }
+    const params = new URLSearchParams(window.location.search);
+    const tokenEnUrl = params.get('token')?.trim();
+    if (tokenEnUrl)
+      sessionStorage.setItem(this.authTokenStorageKey, tokenEnUrl);
+
+    const userToken = sessionStorage.getItem(this.authTokenStorageKey)?.trim();
+    if (!userToken) {
+      this.usuarioLogeado = false;
+      return;
+    }
+
+    this.loginService.getCheckUserToken(userToken).subscribe(
+      (resposne: any) => {
+        this.userToken = userToken;
+        this.userName = resposne?.username ?? 'Usuario' + userToken.substring(0, 5);
+        this.usuarioLogeado = true;
+      },
+      (error: any) => {
+        this.usuarioLogeado = false;
+        sessionStorage.removeItem(this.authTokenStorageKey);
+      }
+    );
+  }
+
+  irALogin() {
+
   }
 
   getImagenEscenario(escenario: any): string {
@@ -186,7 +227,7 @@ export class Escenarios implements OnInit {
 
   irASeleccionarEntradas(espectaculo: any, escenario: any) {
     this.router.navigate(['/seleccionarEntradas'], {
-      queryParams: { espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) }
+      queryParams: { userToken: this.userToken, espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
     });
   }
 

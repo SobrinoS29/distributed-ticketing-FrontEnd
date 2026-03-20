@@ -10,6 +10,6 @@ export class LoginService {
   constructor(private http: HttpClient) {}
 
   getCheckUserToken(userToken: string): Observable<any> {
-    return this.http.get(`http://localhost:8081/external/checkUserToken?userToken=${userToken}`);
+    return this.http.get(`http://localhost:8080/compra/checkUserToken?userToken=${userToken}`);
   }
 }

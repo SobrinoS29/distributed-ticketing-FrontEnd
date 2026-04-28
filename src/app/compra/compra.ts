@@ -31,7 +31,7 @@ export class Compra {
   importeTotal : number | 0 = 0;
   stripe = Stripe("pk_test_51T92b1A0bERckX0t3nSgqPZeWpC5uTSUeKjbX91H2AvRUYI9nKbFtyg8iGQ9GuLlCCSZMIhG1Ow52R3FlOWi4RoR00vIX3R5jG");  // Reemplaza con tu clave pública de Stripe
   
-  userToken: string | null = null;
+  sessionToken: string | null = null;
   ticketToken: string | null = null;
   ticketsSeleccionados: Ticket[] = [];
 
@@ -73,7 +73,7 @@ export class Compra {
       const ticketTokenParam = params.get('ticketToken');
       if (ticketTokenParam) {
         try {
-          this.userToken = JSON.parse(decodeURIComponent(userTokenParam ?? 'null'));
+          this.sessionToken = JSON.parse(decodeURIComponent(userTokenParam ?? 'null'));
           this.ticketToken = JSON.parse(decodeURIComponent(ticketTokenParam ?? 'null'));
         } catch (error) {
           console.error('Error al parsear el token:', error);
@@ -237,10 +237,10 @@ export class Compra {
   }
 
   private enviarEmailCompra(): void {
-    this.compraService.enviarEmailCompra(this.userToken, this.ticketsSeleccionados).subscribe(
+    this.compraService.enviarEmailCompra(this.sessionToken, this.ticketsSeleccionados).subscribe(
       (response: any) => {        
         this.router.navigate(['/'], {
-          queryParams: {userToken: this.userToken},
+          queryParams: {sessionToken: this.sessionToken},
           });
       },
       (error: any) => {

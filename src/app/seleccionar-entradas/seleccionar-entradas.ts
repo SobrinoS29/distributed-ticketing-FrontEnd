@@ -231,7 +231,7 @@ export class SeleccionarEntradas implements OnInit {
     }
 
     this.loginService.getCheckUserToken(this.userToken).subscribe(  // Comprobaremos primero que el userToken es válido (seguridad)
-      (resposne: any) => {        
+      (username: string) => {        
         this.router.navigate(['/compra'], {
           queryParams: {userToken: this.userToken, ticketToken: encodeURIComponent(JSON.stringify(this.tokenReserva)),  // Enviamos el token de reserva para identificar las entradas reservadas por este cliente
           }
@@ -245,7 +245,10 @@ export class SeleccionarEntradas implements OnInit {
 
   irALogin(): void {
     this.router.navigate(['/login'], {
-      queryParams: {userToken: this.userToken, ticketToken: encodeURIComponent(JSON.stringify(this.tokenReserva)),
+      queryParams: {
+        returnTo: '/compra',
+        userToken: this.userToken,
+        ticketToken: encodeURIComponent(JSON.stringify(this.tokenReserva)),
       }
     });
   }

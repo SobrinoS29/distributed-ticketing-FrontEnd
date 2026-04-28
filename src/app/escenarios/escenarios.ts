@@ -14,7 +14,7 @@ import { LoginService } from '../login.service';
 
 export class Escenarios implements OnInit {
 
-  userToken: string | null = null;
+  sessionToken: string | null = null;
   userName: string = '';
   escenarios: any = [];  // Any se usa para unificar el tipo de datos, ya que no se ha definido un modelo específico para escenarios, espectaculos o entradas
   terminoBusqueda: string = '';
@@ -88,31 +88,39 @@ export class Escenarios implements OnInit {
       return;
     }
     const params = new URLSearchParams(window.location.search);
-    const tokenEnUrl = params.get('token')?.trim();
+    const tokenEnUrl = params.get('sessionToken')?.trim();
     if (tokenEnUrl)
-      sessionStorage.setItem(this.authTokenStorageKey, tokenEnUrl);
+      sessionStorage.setItem(this.authTokenStorageKey, tokenEnUrl);  // Si el token viene en la URL lo guardamos en el sessionStorage para mantener la sesión iniciada
 
-    const userToken = sessionStorage.getItem(this.authTokenStorageKey)?.trim();
-    if (!userToken) {
+    const sessionToken = sessionStorage.getItem(this.authTokenStorageKey)?.trim();  // Obtenemos el token de sesión del sessionStorage para verificar si el usuario está logeado, si no hay token o es una cadena vacía, consideramos que el usuario no está logeado
+    if (!sessionToken) {
       this.usuarioLogeado = false;
       return;
     }
 
-    this.loginService.getCheckUserToken(userToken).subscribe(
-      (resposne: any) => {
-        this.userToken = userToken;
-        this.userName = resposne?.username ?? 'Usuario' + userToken.substring(0, 5);
-        this.usuarioLogeado = true;
+    this.loginService.getCheckUserToken(sessionToken).subscribe(
+      (username: string) => {
+        setTimeout(() => {  // Deferir cambios al siguiente tick para evitar ExpressionChangedAfterItHasBeenCheckedError
+          this.sessionToken = sessionToken;
+          this.userName = username || 'Usuario' + sessionToken.substring(0, 5);
+          this.usuarioLogeado = true;
+          this.cdr.detectChanges();
+        }, 0);
       },
       (error: any) => {
-        this.usuarioLogeado = false;
-        sessionStorage.removeItem(this.authTokenStorageKey);
+        setTimeout(() => {
+          this.usuarioLogeado = false;
+          sessionStorage.removeItem(this.authTokenStorageKey);
+          this.cdr.detectChanges();
+        }, 0);
       }
     );
   }
 
   irALogin() {
-
+    this.router.navigate(['/login'], {
+      queryParams: {returnTo: '/home',}
+    });
   }
 
   getImagenEscenario(escenario: any): string {
@@ -227,7 +235,7 @@ export class Escenarios implements OnInit {
 
   irASeleccionarEntradas(espectaculo: any, escenario: any) {
     this.router.navigate(['/seleccionarEntradas'], {
-      queryParams: { userToken: this.userToken, espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
+      queryParams: { sessionToken: this.sessionToken, espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
     });
   }
 

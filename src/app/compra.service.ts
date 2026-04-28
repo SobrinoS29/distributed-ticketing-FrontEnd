@@ -13,7 +13,7 @@ export class CompraService {
     // el token como parametro de la url y no como body, y lo quiero enviar con body porque me parece más seguro
   }
 
-  enviarEmailCompra(userToken: string | null, ticketsSeleccionados: any[]) {
-    return this.http.post('http://localhost:8080/compra/enviarEmailCompra', { userToken, ticketsSeleccionados });
+  enviarEmailCompra(sessionToken: string | null, ticketsSeleccionados: any[]) {
+    return this.http.post('http://localhost:8080/compra/enviarEmailCompra', { sessionToken, ticketsSeleccionados });
   }
 }

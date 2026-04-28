@@ -1,9 +1,12 @@
 <div class="container">
 
-    <div class="top-actions" *ngIf="!usuarioLogeado">
-        <button class="btn-login" type="button" (click)="irALogin()">
+    <div class="top-actions">
+        <button class="btn-login" type="button" (click)="irALogin()" *ngIf="!usuarioLogeado">
             Login
         </button>
+        <div class="user-info" *ngIf="usuarioLogeado">
+            Bienvenido, {{ userName }}
+        </div>
     </div>
 
     <!-- Logo en el Centro -->

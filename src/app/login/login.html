@@ -1,1 +1,82 @@
-<p>login works!</p>
+<div class="login-shell">
+	<div class="login-card">
+		<section class="login-hero">
+			<div class="brand-mark">
+				<img src="/assets/logo-esiEntradas.png" alt="ESI Entradas" class="brand-logo">
+			</div>
+
+			<p class="eyebrow">Acceso privado</p>
+			<h1>Bienvenido de nuevo a ESI Entradas</h1>
+			<p class="hero-copy">
+				Entra para gestionar tus entradas, revisar tus compras y continuar donde lo dejaste.
+			</p>
+
+			<div class="hero-badges">
+				<span>Pago seguro</span>
+				<span>Acceso rápido</span>
+				<span>Experiencia unificada</span>
+			</div>
+		</section>
+
+		<section class="login-panel">
+			<div class="panel-header">
+				<h2>Iniciar sesión</h2>
+				<p>Usa tus credenciales para acceder a la plataforma.</p>
+			</div>
+
+			<form class="login-form" (ngSubmit)="submitLogin($event)" novalidate>
+				<div *ngIf="loginError" class="error-message">
+					{{ loginError }}
+				</div>
+
+				<label class="field">
+					<span>Correo electrónico</span>
+					<input 
+						type="email" 
+						name="email"
+						[(ngModel)]="email"
+						id="email"
+						required
+						placeholder="tu@correo.com" 
+						autocomplete="email"
+						[class.error]="email.length > 0 && !isEmailValid()">
+					<div *ngIf="email.length > 0 && !isEmailValid()" class="field-error">
+						<span>El email debe tener formato válido (ej: usuario@dominio.com)</span>
+					</div>
+				</label>
+
+				<label class="field">
+					<span>Contraseña</span>
+					<div class="password-row">
+						<div class="password-input-wrap">
+							<input 
+								type="password"
+								name="password"
+								[(ngModel)]="password"
+								id="password"
+								required
+								placeholder="••••••••" 
+								autocomplete="current-password"
+								[class.error]="password.length > 0 && !isPasswordValid()">
+						</div>
+					</div>
+
+					<div class="password-requirements">
+						<div class="requirement-item" *ngFor="let requirement of getPasswordRequirements()">
+							<span class="status-icon" [class.met]="requirement.met" [class.not-met]="!requirement.met">
+								{{ requirement.met ? '✓' : '×' }}
+							</span>
+							<span class="requirement-text">{{ requirement.label }}</span>
+						</div>
+					</div>
+				</label>
+
+				<button type="submit" class="btn-primary" [disabled]="!isEmailValid() || !isPasswordValid()">
+					Entrar
+				</button>
+
+				<a routerLink="/" class="back-link">← Volver a los escenarios</a>
+			</form>
+		</section>
+	</div>
+</div>

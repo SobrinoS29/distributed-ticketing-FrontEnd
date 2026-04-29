@@ -9,10 +9,8 @@ export class LoginService {
 
   constructor(private http: HttpClient) {}
 
-  getCheckUserToken(sessionToken: string): Observable<string> {
-    return this.http.get(`http://localhost:8080/compra/checkUserToken?sessionToken=${sessionToken}`, {
-      responseType: 'text'
-    });
+  getCheckUserToken(userToken: string): Observable<string> {
+    return this.http.get(`http://localhost:8080/compra/checkUserToken?userToken=${userToken}`, {responseType: 'text',});
   }
 
   login(credentials: { mail: string; pwd: string }): Observable<string> {

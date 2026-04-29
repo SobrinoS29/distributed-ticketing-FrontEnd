@@ -12,8 +12,8 @@ export class SeleccionarEntradasService {
     return this.http.get(`http://localhost:8080/busqueda/getEntradasLibresByZona?espectaculoId=${espectaculoId}&zona=${zona}`);
   }
 
-  reservarEntrada(entradaId: number, tokenReserva: string) {
-    return this.http.put(`http://localhost:8080/reservas/reservar`, { entradaId, tokenReserva}, { responseType: 'text' });  // Devolvemos el ticketToken de reserva como String
+  reservarEntrada(entradaId: number, tokenReserva: string, userTokenReserva: string | null) {
+    return this.http.put(`http://localhost:8080/reservas/reservar`, { entradaId, tokenReserva, userTokenReserva: userTokenReserva }, { responseType: 'text' });  // Devolvemos el ticketToken de reserva como String
   }
 
   liberarEntrada(entradaId: number, tokenReserva: string) {

@@ -69,7 +69,7 @@ export class SeleccionarEntradas implements OnInit {
       const escenarioParam = params.get('escenario');
       if (espectaculoParam && escenarioParam) {
         try {
-          this.userToken = JSON.parse(decodeURIComponent(userTokenParam ?? 'null'));
+          this.userToken = userTokenParam ? decodeURIComponent(userTokenParam) : null;
           this.espectaculo = JSON.parse(decodeURIComponent(espectaculoParam));
           this.escenario = JSON.parse(decodeURIComponent(escenarioParam));
         } catch (error) {
@@ -167,11 +167,14 @@ export class SeleccionarEntradas implements OnInit {
     }
 
     if(!ticket.seleccionada) {  // Comprobaremos si hay token o no en el backend
-      this.seleccionarEntradasService.reservarEntrada(ticket.entradaId, this.tokenReserva).subscribe(
-        (response: any) => {
-          if (!this.tokenReserva) this.tokenReserva = response;  // Solo se guarda la primera vez
+      this.seleccionarEntradasService.reservarEntrada(ticket.entradaId, this.tokenReserva, this.userToken).subscribe(
+        (response: any) => {  // Debemos separar token.getTokenReserva() + "|" + token.getUserToken();
+          if (!this.tokenReserva) this.tokenReserva = response.split('|')[0];  // Solo se guarda la primera vez
+          try { sessionStorage.setItem('ticketToken', this.tokenReserva); } catch {}
+          if (!this.userToken) this.userToken = response.split('|')[1];  // Solo se guarda la primera vez
           ticket.token = response;
           console.log('Entrada reservada con token:', this.tokenReserva);
+          console.log('User token asociado a la reserva:', this.userToken);
           ticket.seleccionada = true;
           this.cdr.detectChanges();
         },

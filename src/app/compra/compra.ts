@@ -31,7 +31,7 @@ export class Compra {
   importeTotal : number | 0 = 0;
   stripe = Stripe("pk_test_51T92b1A0bERckX0t3nSgqPZeWpC5uTSUeKjbX91H2AvRUYI9nKbFtyg8iGQ9GuLlCCSZMIhG1Ow52R3FlOWi4RoR00vIX3R5jG");  // Reemplaza con tu clave pública de Stripe
   
-  sessionToken: string | null = null;
+  userToken: string | null = null;
   ticketToken: string | null = null;
   ticketsSeleccionados: Ticket[] = [];
 
@@ -44,18 +44,19 @@ export class Compra {
 
   private stripeStyles = {  // Configuración de estilos para Stripe
     base: {
-      color: '#32325d',
-      fontFamily: 'Arial, sans-serif',
+      color: '#0b1220',
+      fontFamily: 'Inter, system-ui, Arial, sans-serif',
       fontSmoothing: 'antialiased',
-      fontSize: '16px',
+      fontSize: '18px',
       '::placeholder': {
-        color: '#32325d'
-      }
+        color: '#64748b'
+      },
+      iconColor: '#64748b'
     },
     invalid: {
-      fontFamily: 'Arial, sans-serif',
-      color: '#fa755a',
-      iconColor: '#fa755a'
+      fontFamily: 'Inter, system-ui, Arial, sans-serif',
+      color: '#b91c1c',
+      iconColor: '#b91c1c'
     }
   };
 
@@ -71,21 +72,53 @@ export class Compra {
     this.route.queryParamMap.subscribe((params) => {
       const userTokenParam = params.get('userToken');
       const ticketTokenParam = params.get('ticketToken');
-      if (ticketTokenParam) {
-        try {
-          this.sessionToken = JSON.parse(decodeURIComponent(userTokenParam ?? 'null'));
-          this.ticketToken = JSON.parse(decodeURIComponent(ticketTokenParam ?? 'null'));
-        } catch (error) {
-          console.error('Error al parsear el token:', error);
-          this.ticketToken = null;
+        if (ticketTokenParam) {
+          try {
+            this.userToken = userTokenParam ? decodeURIComponent(userTokenParam) : null;
+            this.ticketToken = JSON.parse(decodeURIComponent(ticketTokenParam ?? 'null'));
+          } catch (error) {
+            console.error('Error al parsear el token:', error);
+            this.ticketToken = null;
+          }
+          this.adoptReservationsIfLogged();
+          this.getEntradasSeleccionadas();
+        } else {
+          // Fallback: try sessionStorage (token persisted during reserva)
+          const stored = sessionStorage.getItem('ticketToken');
+          if (stored) {
+            this.ticketToken = stored;
+            this.userToken = userTokenParam ? decodeURIComponent(userTokenParam) : sessionStorage.getItem('authToken');
+            this.adoptReservationsIfLogged();
+            this.getEntradasSeleccionadas();
+          } else {
+            console.warn('No se recibió el token.');
+            this.ticketToken = null;
+          }
         }
-        this.getEntradasSeleccionadas();
-      } else {
-        console.warn('No se recibió el token.');
-        this.ticketToken = null;
-      }
     });
   }
+
+  private adoptReservationsIfLogged(): void {
+    // Si hay userToken y ticketToken, significa que se acaba de logear
+    // Llamar a adoptReservations para asociar las reservas anónimas al nuevo usuario logeado
+    if (this.userToken && this.ticketToken) {
+      // Asegurar que ticketToken es string (puede venir como objeto si fue parseado)
+      const ticketTokenStr = typeof this.ticketToken === 'string' ? this.ticketToken : String(this.ticketToken);
+      console.log('Adoptando reservas para userToken:', this.userToken, 'ticketToken:', ticketTokenStr);
+      this.compraService.adoptReservations(ticketTokenStr, this.userToken).subscribe(
+        (response: any) => {
+          console.log('Reservas adoptadas exitosamente bajo el nuevo usuario logeado:', response);
+        },
+        (error: any) => {
+          console.error('Error al adoptar las reservas:', error);
+          // No bloqueamos el flujo si el adopt falla; continuamos al getEntradasSeleccionadas
+        }
+      );
+    } else {
+      console.log('No adoptando reservas: userToken=', this.userToken, 'ticketToken=', this.ticketToken);
+    }
+  }
+
 
   getEntradasSeleccionadas(): void {  // Usaremos el token para obtener cada Ticket (entradaId, precio, zona, fila, columna, planta, espectaculoId, escenarioId)
     if (!this.ticketToken) {
@@ -134,7 +167,6 @@ export class Compra {
 
     const infoPago = {
       centimos : Math.floor(this.importeTotal * 100),  // Convertir el importe a céntimos (Stripe trabaja con la unidad más pequeña)
-      // Aquí puedes agregar más información relevante para el pago, como detalles de la compra, usuario, etc.
     };
     this.pagosService.prepararPago(infoPago).subscribe({
       next: (response: string) => {
@@ -143,7 +175,6 @@ export class Compra {
         this.initializeStripeForm();
     }, error: (error: any) => {
       console.error('Error al preparar el pago:', error);
-      // Aquí puedes manejar errores, como mostrar un mensaje de error al usuario.
     }});
   }
 
@@ -237,11 +268,15 @@ export class Compra {
   }
 
   private enviarEmailCompra(): void {
-    this.compraService.enviarEmailCompra(this.sessionToken, this.ticketsSeleccionados).subscribe(
+    this.compraService.enviarEmailCompra(this.userToken, this.ticketsSeleccionados).subscribe(
       (response: any) => {        
-        this.router.navigate(['/'], {
-          queryParams: {sessionToken: this.sessionToken},
+        window.setTimeout(() => {
+          sessionStorage.removeItem('ticketToken');  // Limpiaremos el token de compra para evitar reutilización
+          this.router.navigate(['/'], {
+            queryParams: { userToken: this.userToken },
+            replaceUrl: true
           });
+        }, 10000);
       },
       (error: any) => {
         console.error('Error al enviar el email de compra:', error);

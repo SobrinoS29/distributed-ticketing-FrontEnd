@@ -113,6 +113,9 @@
   box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
   position: relative;
   overflow: hidden;
+  display: block;
+  margin: 0.9rem auto;
+  text-align: center;
 }
 
 .btn-pago::before {
@@ -143,7 +146,8 @@
   background: linear-gradient(135deg, #cbd5e1 0%, #a1acbe 100%);
   cursor: not-allowed;
   box-shadow: none;
-  opacity: 0.7;
+  opacity: 0.95; /* keep button visible */
+  color: #334155; /* darker text for better contrast on light background */
 }
 
 .payment-info {
@@ -195,9 +199,13 @@
   border: 2px solid #e2e8f0;
   border-radius: 8px;
   background-color: white;
+  color: #0f172a; /* ensure high-contrast text inside host container */
+  font-size: 18px;
   min-height: 50px;
   transition: all 0.3s ease;
 }
+
+.payment-form label, .payment-form p { color: #0f172a }
 
 .card-element:hover {
   border-color: #cbd5e1;
@@ -250,11 +258,15 @@
 }
 
 .btn-submit:disabled {
-  background: linear-gradient(135deg, #cbd5e1 0%, #a1acbe 100%);
+  background: linear-gradient(135deg, #e6eef5 0%, #cbd5e1 100%);
   cursor: not-allowed;
   box-shadow: none;
-  opacity: 0.7;
+  opacity: 0.98; /* keep label legible */
+  color: #334155; /* darker text for contrast */
 }
+
+/* Ensure button inner text uses inherited color to improve accessibility */
+.btn-submit #button-text, .btn-pago { color: inherit; }
 
 .card-error {
   color: var(--error-color);

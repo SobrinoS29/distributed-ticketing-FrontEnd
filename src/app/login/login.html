@@ -20,11 +20,11 @@
 
 		<section class="login-panel">
 			<div class="panel-header">
-				<h2>Iniciar sesión</h2>
-				<p>Usa tus credenciales para acceder a la plataforma.</p>
+				<h2>{{ showRegisterForm ? 'Crear cuenta' : 'Iniciar sesión' }}</h2>
+				<p>{{ showRegisterForm ? 'Rellena tus datos para registrarte en la plataforma.' : 'Usa tus credenciales para acceder a la plataforma.' }}</p>
 			</div>
 
-			<form class="login-form" (ngSubmit)="submitLogin($event)" novalidate>
+			<form *ngIf="!showRegisterForm; else registerForm" class="login-form" (ngSubmit)="submitLogin($event)" novalidate>
 				<div *ngIf="loginError" class="error-message">
 					{{ loginError }}
 				</div>
@@ -57,26 +57,103 @@
 								required
 								placeholder="••••••••" 
 								autocomplete="current-password"
-								[class.error]="password.length > 0 && !isPasswordValid()">
-						</div>
-					</div>
-
-					<div class="password-requirements">
-						<div class="requirement-item" *ngFor="let requirement of getPasswordRequirements()">
-							<span class="status-icon" [class.met]="requirement.met" [class.not-met]="!requirement.met">
-								{{ requirement.met ? '✓' : '×' }}
-							</span>
-							<span class="requirement-text">{{ requirement.label }}</span>
+								[class.error]="false">
 						</div>
 					</div>
 				</label>
 
-				<button type="submit" class="btn-primary" [disabled]="!isEmailValid() || !isPasswordValid()">
-					Entrar
-				</button>
+				<div class="form-actions">
+					<button type="submit" class="btn-primary" [disabled]="!isEmailValid(email) || !password.trim()">
+						Entrar
+					</button>
+					<button type="button" class="btn-secondary" (click)="openRegisterForm()">
+						Registrarse
+					</button>
+				</div>
 
 				<a routerLink="/" class="back-link">← Volver a los escenarios</a>
 			</form>
+
+			<ng-template #registerForm>
+				<form class="login-form" (ngSubmit)="submitRegister($event)" novalidate>
+					<div *ngIf="registerSuccess" class="status-message success-message">
+						{{ registerSuccess }}
+					</div>
+
+					<div *ngIf="registerError" class="error-message">
+						{{ registerError }}
+					</div>
+
+					<label class="field">
+						<span>Nombre</span>
+						<input 
+							type="text" 
+							name="registerName"
+							[(ngModel)]="registerName"
+							id="registerName"
+							required
+							placeholder="Tu nombre"
+							autocomplete="name"
+							[class.error]="registerName.length > 0 && !isNameValid(registerName)">
+						<div *ngIf="registerName.length > 0 && !isNameValid(registerName)" class="field-error">
+							<span>Introduce un nombre válido.</span>
+						</div>
+					</label>
+
+					<label class="field">
+						<span>Correo electrónico</span>
+						<input 
+							type="email" 
+							name="registerEmail"
+							[(ngModel)]="registerEmail"
+							id="registerEmail"
+							required
+							placeholder="tu@correo.com" 
+							autocomplete="email"
+							[class.error]="registerEmail.length > 0 && !isEmailValid(registerEmail)">
+						<div *ngIf="registerEmail.length > 0 && !isEmailValid(registerEmail)" class="field-error">
+							<span>El email debe tener formato válido (ej: usuario@dominio.com)</span>
+						</div>
+					</label>
+
+					<label class="field">
+						<span>Contraseña</span>
+						<div class="password-row">
+							<div class="password-input-wrap">
+								<input 
+									type="password"
+									name="registerPassword"
+									[(ngModel)]="registerPassword"
+									id="registerPassword"
+									required
+									placeholder="••••••••" 
+									autocomplete="new-password"
+									[class.error]="registerPassword.length > 0 && !isPasswordValid(registerPassword)">
+							</div>
+						</div>
+
+						<div class="password-requirements">
+							<div class="requirement-item" *ngFor="let requirement of getPasswordRequirements(registerPassword)">
+								<span class="status-icon" [class.met]="requirement.met" [class.not-met]="!requirement.met">
+									{{ requirement.met ? '✓' : '×' }}
+								</span>
+								<span class="requirement-text">{{ requirement.label }}</span>
+							</div>
+						</div>
+					</label>
+
+					<div class="form-actions">
+						<button type="submit" class="btn-primary" [disabled]="!isNameValid(registerName) || !isEmailValid(registerEmail) || !isPasswordValid(registerPassword)">
+							Crear cuenta
+						</button>
+						<button type="button" class="btn-secondary" (click)="closeRegisterForm()">
+							Volver al login
+						</button>
+					</div>
+
+					<a routerLink="/" class="back-link">← Volver a los escenarios</a>
+				</form>
+			</ng-template>
 		</section>
 	</div>
 </div>

@@ -14,7 +14,7 @@ import { LoginService } from '../login.service';
 
 export class Escenarios implements OnInit {
 
-  sessionToken: string | null = null;
+  userToken: string | null = null;
   userName: string = '';
   escenarios: any = [];  // Any se usa para unificar el tipo de datos, ya que no se ha definido un modelo específico para escenarios, espectaculos o entradas
   terminoBusqueda: string = '';
@@ -88,21 +88,21 @@ export class Escenarios implements OnInit {
       return;
     }
     const params = new URLSearchParams(window.location.search);
-    const tokenEnUrl = params.get('sessionToken')?.trim();
+    const tokenEnUrl = params.get('userToken')?.trim();
     if (tokenEnUrl)
       sessionStorage.setItem(this.authTokenStorageKey, tokenEnUrl);  // Si el token viene en la URL lo guardamos en el sessionStorage para mantener la sesión iniciada
 
-    const sessionToken = sessionStorage.getItem(this.authTokenStorageKey)?.trim();  // Obtenemos el token de sesión del sessionStorage para verificar si el usuario está logeado, si no hay token o es una cadena vacía, consideramos que el usuario no está logeado
-    if (!sessionToken) {
+    const userToken = sessionStorage.getItem(this.authTokenStorageKey)?.trim();  // Obtenemos el token de sesión del sessionStorage para verificar si el usuario está logeado, si no hay token o es una cadena vacía, consideramos que el usuario no está logeado
+    if (!userToken) {
       this.usuarioLogeado = false;
       return;
     }
 
-    this.loginService.getCheckUserToken(sessionToken).subscribe(
+    this.loginService.getCheckUserToken(userToken).subscribe(
       (username: string) => {
         setTimeout(() => {  // Deferir cambios al siguiente tick para evitar ExpressionChangedAfterItHasBeenCheckedError
-          this.sessionToken = sessionToken;
-          this.userName = username || 'Usuario' + sessionToken.substring(0, 5);
+          this.userToken = userToken;
+          this.userName = username || 'Usuario' + userToken.substring(0, 5);
           this.usuarioLogeado = true;
           this.cdr.detectChanges();
         }, 0);
@@ -235,7 +235,7 @@ export class Escenarios implements OnInit {
 
   irASeleccionarEntradas(espectaculo: any, escenario: any) {
     this.router.navigate(['/seleccionarEntradas'], {
-      queryParams: { sessionToken: this.sessionToken, espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
+      queryParams: { userToken: this.userToken, espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
     });
   }
 

@@ -20,4 +20,8 @@ export class SeleccionarEntradasService {
     return this.http.put(`http://localhost:8080/reservas/liberar`, { entradaId, tokenReserva}, { responseType: 'text' });  // Devolvemos el ticketToken de reserva como String
   }
 
+  cleanupExpiredReservations(tokenReserva: string) {
+    return this.http.put(`http://localhost:8080/reservas/cleanupExpiredReservations`, { ticketToken: tokenReserva }, { responseType: 'text' });
+  }
+
 }

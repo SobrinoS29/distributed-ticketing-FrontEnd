@@ -33,8 +33,24 @@ export class Login implements OnInit {
       this.returnTo = '/compra';
     this.ticketToken = this.route.snapshot.queryParamMap.get('ticketToken') ?? '';
 
-    this.userToken = sessionStorage.getItem(this.authTokenStorageKey);
-    if(this.userToken)
+    // If a token was passed in the URL (e.g. after an external login redirect),
+    // capture it into sessionStorage and remove it from the visible URL immediately.
+    const tokenFromUrl = this.route.snapshot.queryParamMap.get('userToken');
+    if (tokenFromUrl) {
+      sessionStorage.setItem(this.authTokenStorageKey, tokenFromUrl);
+      this.userToken = tokenFromUrl;
+      // Remove sensitive query params from the URL so the token is not exposed.
+      try {
+        const cleanPath = window.location.pathname + window.location.hash;
+        history.replaceState(null, '', cleanPath);
+      } catch (e) {
+        // Fallback: do nothing if replaceState is unavailable.
+        console.warn('Could not remove token from URL', e);
+      }
+    }
+
+    this.userToken = this.userToken ?? sessionStorage.getItem(this.authTokenStorageKey);
+    if (this.userToken)
       this.redirectAfterLogin(this.userToken);
   }
 
@@ -170,16 +186,18 @@ export class Login implements OnInit {
   private redirectAfterLogin(userToken: string): void {
     if (this.returnTo === '/compra') {
       const ticket = this.ticketToken || sessionStorage.getItem('ticketToken') || '';
+      // Do NOT include `userToken` in the URL. Store it in sessionStorage and
+      // only pass non-sensitive data (like a ticket identifier) if needed.
+      sessionStorage.setItem(this.authTokenStorageKey, userToken);
       this.router.navigate(['/compra'], {
         queryParams: {
-          userToken: userToken,
           ticketToken: ticket
         }
       });
       return;
     }
-    this.router.navigate(['/'], {
-      queryParams: { userToken: userToken },
-    });
+    // Store token and navigate without exposing it in the query string.
+    sessionStorage.setItem(this.authTokenStorageKey, userToken);
+    this.router.navigate(['/']);
   }
 }

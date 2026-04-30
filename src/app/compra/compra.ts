@@ -1,9 +1,10 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { PagosService } from '../pagos.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { CompraService } from '../compra.service';
+import { SeleccionarEntradasService } from '../seleccionar-entradas.service';
 import { Router } from '@angular/router';
 
 declare let Stripe: any;  // Declaramos Stripe para usarlo en el componente
@@ -25,22 +26,27 @@ interface Ticket {
   templateUrl: './compra.html',
   styleUrl: './compra.css',
 })
-export class Compra {
+export class Compra implements OnDestroy {
+
+  private static readonly COMPRA_TTL_MS =  5 * 60 * 1000;  // TTL de 5 minutos para la pantalla de compra
 
   client_secret? : string = '';  // A lo mejor tiene valor o no (undefined)
   importeTotal : number | 0 = 0;
   stripe = Stripe("pk_test_51T92b1A0bERckX0t3nSgqPZeWpC5uTSUeKjbX91H2AvRUYI9nKbFtyg8iGQ9GuLlCCSZMIhG1Ow52R3FlOWi4RoR00vIX3R5jG");  // Reemplaza con tu clave pública de Stripe
   
   userToken: string | null = null;
-  ticketToken: string | null = null;
+  ticketToken: string = "";
   ticketsSeleccionados: Ticket[] = [];
 
   private card: any = null;
   private formInitialized: boolean = false;
+  private compraTimeoutId: any = null;
   
   pagoExitoso: boolean = false;
   paymentIntentId: string = '';
   fechaPago: string = '';
+
+  readonly authTokenStorageKey: string = 'authToken';
 
   private stripeStyles = {  // Configuración de estilos para Stripe
     base: {
@@ -63,6 +69,7 @@ export class Compra {
   constructor(
     private route: ActivatedRoute,
     private compraService: CompraService,
+    private seleccionarEntradasService: SeleccionarEntradasService,
     private pagosService: PagosService,
     private cdr: ChangeDetectorRef,
     private router: Router,
@@ -70,7 +77,7 @@ export class Compra {
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
-      const userTokenParam = params.get('userToken');
+      const userTokenParam = sessionStorage.getItem(this.authTokenStorageKey)?.trim();  // Obtenemos el token de sesión del sessionStorage para verificar si el usuario está logeado, si no hay token o es una cadena vacía, consideramos que el usuario no está logeado
       const ticketTokenParam = params.get('ticketToken');
         if (ticketTokenParam) {
           try {
@@ -78,7 +85,7 @@ export class Compra {
             this.ticketToken = JSON.parse(decodeURIComponent(ticketTokenParam ?? 'null'));
           } catch (error) {
             console.error('Error al parsear el token:', error);
-            this.ticketToken = null;
+            this.ticketToken = "";
           }
           this.adoptReservationsIfLogged();
           this.getEntradasSeleccionadas();
@@ -92,10 +99,38 @@ export class Compra {
             this.getEntradasSeleccionadas();
           } else {
             console.warn('No se recibió el token.');
-            this.ticketToken = null;
+            this.ticketToken = "";
           }
         }
     });
+
+    this.iniciarTTLCompra();
+  }
+
+  ngOnDestroy(): void {
+    this.limpiarTTLCompra();
+  }
+
+  private iniciarTTLCompra(): void {
+    this.limpiarTTLCompra();
+    this.compraTimeoutId = setTimeout(() => {
+      this.seleccionarEntradasService.cleanupExpiredReservations(this.ticketToken).subscribe(
+      (response: any) => {
+        console.warn('TTL de compra expirado. Redirigiendo a escenarios...');
+        sessionStorage.removeItem('ticketToken');
+        this.router.navigate(['/'], { queryParams: { timeout: 'true' } });
+      },
+      (error: any) => {
+        console.error('Error cleaning up expired reservations:', error);
+      }
+    )}, Compra.COMPRA_TTL_MS);
+  }
+
+  private limpiarTTLCompra(): void {
+    if (this.compraTimeoutId !== null) {
+      clearTimeout(this.compraTimeoutId);
+      this.compraTimeoutId = null;
+    }
   }
 
   private adoptReservationsIfLogged(): void {
@@ -270,10 +305,11 @@ export class Compra {
   private enviarEmailCompra(): void {
     this.compraService.enviarEmailCompra(this.userToken, this.ticketsSeleccionados).subscribe(
       (response: any) => {        
+        this.limpiarTTLCompra();
         window.setTimeout(() => {
           sessionStorage.removeItem('ticketToken');  // Limpiaremos el token de compra para evitar reutilización
           this.router.navigate(['/'], {
-            queryParams: { userToken: this.userToken },
+            queryParams: { timeout: 'false' },
             replaceUrl: true
           });
         }, 10000);

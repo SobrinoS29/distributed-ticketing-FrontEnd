@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { EscenariosService } from '../escenarios.service';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LoginService } from '../login.service';
 
 @Component({
@@ -21,6 +21,7 @@ export class Escenarios implements OnInit {
   escenarioSeleccionado: any = null;  // Almacena el escenario seleccionado para mostrarlo centrado
   cargandoEspectaculos: boolean = false;  // Indica si se están cargando los espectáculos
   usuarioLogeado: boolean = false;
+  reservaExpired: boolean = false;  // Muestra si la reserva expiró por timeout
   readonly authTokenStorageKey: string = 'authToken';
   
 
@@ -38,6 +39,13 @@ export class Escenarios implements OnInit {
   ngOnInit(){  // El método ngOnInit se ejecuta una vez que el componente ha sido inicializado, es decir, después de que se han cargado los datos y se han renderizado los elementos en la vista, por lo que es un buen lugar para hacer la llamada a la API para obtener los escenarios, ya que así nos aseguramos de que la vista esté lista para mostrar los datos obtenidos de la API.
     this.actualizarEstadoLogin();
     this.getEscenarios();
+    
+    // Verificar si viene desde un timeout de reserva
+    if (this.route.snapshot.queryParamMap.get('timeout') === 'true') {
+      this.reservaExpired = true;
+      alert('Tu sesión de reserva ha expirado (5 minutos). Las entradas han sido liberadas.');
+      this.cdr.detectChanges();
+    }
   }
 
   constructor(
@@ -45,6 +53,7 @@ export class Escenarios implements OnInit {
     private loginService: LoginService,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   abrirEscenario(escenario:any, $event?: Event){
@@ -88,10 +97,6 @@ export class Escenarios implements OnInit {
       return;
     }
     const params = new URLSearchParams(window.location.search);
-    const tokenEnUrl = params.get('userToken')?.trim();
-    if (tokenEnUrl)
-      sessionStorage.setItem(this.authTokenStorageKey, tokenEnUrl);  // Si el token viene en la URL lo guardamos en el sessionStorage para mantener la sesión iniciada
-
     const userToken = sessionStorage.getItem(this.authTokenStorageKey)?.trim();  // Obtenemos el token de sesión del sessionStorage para verificar si el usuario está logeado, si no hay token o es una cadena vacía, consideramos que el usuario no está logeado
     if (!userToken) {
       this.usuarioLogeado = false;
@@ -235,7 +240,7 @@ export class Escenarios implements OnInit {
 
   irASeleccionarEntradas(espectaculo: any, escenario: any) {
     this.router.navigate(['/seleccionarEntradas'], {
-      queryParams: { userToken: this.userToken, espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
+      queryParams: { espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
     });
   }
 

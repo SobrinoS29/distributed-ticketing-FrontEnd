@@ -33,8 +33,7 @@ export class Login implements OnInit {
       this.returnTo = '/compra';
     this.ticketToken = this.route.snapshot.queryParamMap.get('ticketToken') ?? '';
 
-    // If a token was passed in the URL (e.g. after an external login redirect),
-    // capture it into sessionStorage and remove it from the visible URL immediately.
+    // If a token was passed in the URL (e.g. after an external login redirect), capture it into sessionStorage and remove it from the visible URL immediately.
     const tokenFromUrl = this.route.snapshot.queryParamMap.get('userToken');
     if (tokenFromUrl) {
       sessionStorage.setItem(this.authTokenStorageKey, tokenFromUrl);
@@ -186,8 +185,6 @@ export class Login implements OnInit {
   private redirectAfterLogin(userToken: string): void {
     if (this.returnTo === '/compra') {
       const ticket = this.ticketToken || sessionStorage.getItem('ticketToken') || '';
-      // Do NOT include `userToken` in the URL. Store it in sessionStorage and
-      // only pass non-sensitive data (like a ticket identifier) if needed.
       sessionStorage.setItem(this.authTokenStorageKey, userToken);
       this.router.navigate(['/compra'], {
         queryParams: {

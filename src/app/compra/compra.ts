@@ -286,8 +286,15 @@ export class Compra implements OnDestroy {
         if(response === 1) {
             this.paymentIntentId = paymentIntent.id ?? '';
             this.fechaPago = new Date().toLocaleString('es-ES');
-            this.mostrarMensajeExito();
-            this.enviarEmailCompra();
+            this.compraService.updateTicketsAsSold(this.ticketToken).subscribe(
+              (updateResponse: any) => {
+                this.mostrarMensajeExito();
+                this.enviarEmailCompra();
+              },
+              (updateError: any) => {
+                console.error('Error al actualizar los tickets como vendidos:', updateError);
+              }
+            );
         } else
           console.error('Error al confirmar el pago en el backend. Respuesta no valida:', response);
       },
@@ -303,7 +310,7 @@ export class Compra implements OnDestroy {
   }
 
   private enviarEmailCompra(): void {
-    this.compraService.enviarEmailCompra(this.userToken, this.ticketsSeleccionados).subscribe(
+    this.compraService.enviarEmailCompra(this.paymentIntentId,this.userToken, this.ticketsSeleccionados).subscribe(
       (response: any) => {        
         this.limpiarTTLCompra();
         window.setTimeout(() => {

@@ -69,7 +69,11 @@
               "buildTarget": "distributed-ticketing-FrontEnd:build:production"
             },
             "development": {
-              "buildTarget": "distributed-ticketing-FrontEnd:build:development"
+              "buildTarget": "distributed-ticketing-FrontEnd:build:development",
+              "ssl": true,
+              "sslCert": "localhost.pem",
+              "sslKey": "localhost-key.pem",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

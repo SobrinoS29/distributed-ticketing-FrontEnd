@@ -19,6 +19,11 @@ export class Login implements OnInit {
   registerError: string | null = null;
   registerSuccess: string | null = null;
   showRegisterForm = false;
+  showForgotForm = false;
+  forgotError: string | null = null;
+  forgotSuccess: string | null = null;
+  forgotEmail: string = '';
+  forgotLoading: boolean = false;
   returnTo: '/home' | '/compra' = '/home';
   ticketToken: string = '';
   email = '';
@@ -144,6 +149,57 @@ export class Login implements OnInit {
     this.registerName = '';
     this.registerEmail = '';
     this.registerPassword = '';
+  }
+
+  openForgotPasswordForm(): void {
+    this.showForgotForm = true;
+    this.forgotError = null;
+    this.forgotSuccess = null;
+    this.forgotEmail = this.email.trim();
+    this.forgotLoading = false;
+  }
+
+  closeForgotPasswordForm(): void {
+    this.showForgotForm = false;
+    this.forgotError = null;
+    this.forgotSuccess = null;
+    this.forgotEmail = '';
+    this.forgotLoading = false;
+  }
+
+  submitForgotPassword(event?: Event) {
+    event?.preventDefault();
+
+    const email = this.forgotEmail.trim();
+
+    this.forgotError = null;
+    if (!this.isEmailValid(email)) {
+      this.forgotError = 'Introduce un email válido antes de continuar.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.forgotLoading = true;
+    this.cdr.detectChanges();
+
+    this.loginService.requestPasswordReset(email, window.location.origin).subscribe(
+      (response: any) => {
+        console.log('Solicitud de reset enviada:', response);
+        this.forgotLoading = false;
+        this.forgotSuccess = 'Se ha enviado un correo de recuperación a tu email. Por favor, revisa tu bandeja de entrada.';
+        this.forgotEmail = '';
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.closeForgotPasswordForm();
+        }, 3000);
+      },
+      (error: any) => {
+        console.error('Error en solicitud de reset:', error);
+        this.forgotLoading = false;
+        this.forgotError = 'Ha ocurrido un error al procesar tu solicitud. Por favor, intenta de nuevo más tarde.';
+        this.cdr.detectChanges();
+      }
+    );
   }
 
   private handleRegisterSuccess(email: string): void {

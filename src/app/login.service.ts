@@ -20,4 +20,16 @@ export class LoginService {
   register(credentials: { name: string; email: string; pwd: string }): Observable<string> {
     return this.http.post('/users/register', credentials, {responseType: 'text',});
   }
+
+  requestPasswordReset(email: string, frontendUrl: string = window.location.origin): Observable<any> {
+    return this.http.post('/users/forgot-password', { email, frontendUrl });
+  }
+
+  validateResetToken(token: string): Observable<any> {
+    return this.http.get(`/users/reset-password/validate?token=${token}`);
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post('/users/reset-password', { token, newPassword });
+  }
 }

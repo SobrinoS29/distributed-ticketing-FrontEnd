@@ -88,7 +88,11 @@ export class Login implements OnInit {
       },
       (error: any) => {
         console.error('Error: Invalid Credentials:', error);
-        this.loginError = 'El mail o la contraseña son incorrectos. Por favor vuelva a intentarlo.';
+        if (error.status === 403 && error.error && error.error.includes('not verified')) {
+          this.loginError = 'Tu email no ha sido verificado. Por favor, revisa tu correo electrónico para activar tu cuenta.';
+        } else {
+          this.loginError = 'El mail o la contraseña son incorrectos. Por favor vuelva a intentarlo.';
+        }
         this.password = '';
         this.cdr.detectChanges();
       }
@@ -204,7 +208,7 @@ export class Login implements OnInit {
 
   private handleRegisterSuccess(email: string): void {
     this.registerError = null;
-    this.registerSuccess = 'Te has registrado con éxito. Se enviará un correo de confirmación a ' + email + '.';
+    this.registerSuccess = '¡Registro exitoso! Hemos enviado un correo de confirmación a ' + email + '. Por favor, verifica tu email para activar tu cuenta.';
     this.email = email;
     this.password = '';
     this.registerName = '';

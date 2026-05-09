@@ -32,4 +32,8 @@ export class LoginService {
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post('/users/reset-password', { token, newPassword });
   }
+
+  verifyEmail(token: string): Observable<any> {
+    return this.http.get(`/users/verify-email?token=${token}`);
+  }
 }

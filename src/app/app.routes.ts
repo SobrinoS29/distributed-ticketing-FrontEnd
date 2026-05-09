@@ -4,6 +4,7 @@ import { Escenarios } from './escenarios/escenarios';
 import { SeleccionarEntradas } from './seleccionar-entradas/seleccionar-entradas';
 import { Login } from './login/login';
 import { ResetPassword } from './reset-password/reset-password';
+import { VerifyEmail } from './verify-email/verify-email';
 
 export const routes: Routes = [
     {
@@ -25,5 +26,9 @@ export const routes: Routes = [
     {
         path: 'reset-password',
         component: ResetPassword
+    },
+    {
+        path: 'verify-email',
+        component: VerifyEmail
     }
 ];

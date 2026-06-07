@@ -239,7 +239,8 @@ export class Escenarios implements OnInit {
   }
 
   irASeleccionarEntradas(espectaculo: any, escenario: any) {
-    this.router.navigate(['/seleccionarEntradas'], {
+    const usaCola = Number(espectaculo?.id) === 1;
+    this.router.navigate([usaCola ? '/cola' : '/seleccionarEntradas'], {
       queryParams: { espectaculo: encodeURIComponent(JSON.stringify(espectaculo)), escenario: encodeURIComponent(JSON.stringify(escenario)) },
     });
   }

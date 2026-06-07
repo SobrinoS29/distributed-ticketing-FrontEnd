@@ -28,5 +28,23 @@
     "secure": false,
     "changeOrigin": true,
     "logLevel": "warn"
+  },
+  "/cola/unirse": {
+    "target": "https://localhost:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/cola/estado": {
+    "target": "https://localhost:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/cola/salir": {
+    "target": "https://localhost:8080",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
   }
 }

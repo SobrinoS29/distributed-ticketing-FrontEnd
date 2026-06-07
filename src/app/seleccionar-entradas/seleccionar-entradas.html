@@ -133,8 +133,9 @@
 				<div class="ticket-list" *ngIf="ticketsDisponibles.length > 0; else sinEntradasEnZona">
 					<article
 						class="ticket-item"
-						*ngFor="let ticket of ticketsDisponibles; trackBy: trackByEntradaId"
-						[class.selected]="ticket.seleccionada">
+						*ngFor="let ticket of paginatedTickets; trackBy: trackByEntradaId"
+						[class.selected]="ticket.seleccionada"
+						[class.unavailable]="!ticket.disponible">
 						<div class="ticket-band"></div>
 						<div class="ticket-main">
 							<div class="ticket-top">
@@ -148,6 +149,10 @@
 								<p><span>Zona:</span> {{ getZonaNombrePorId(ticket.zona) }}</p>
 								<p><span>Fecha:</span> {{ espectaculo.fecha || 'Pendiente' }}</p>
 							</div>
+
+							<div class="ticket-status" *ngIf="!ticket.disponible">
+								{{ ticket.mensajeEstado || 'Entrada ya no disponible' }}
+							</div>
 						</div>
 
 						<div class="ticket-action">
@@ -157,10 +162,46 @@
 								[class.selected]="ticket.seleccionada"
 								[disabled]="estaBloqueadaSeleccion(ticket)"
 								(click)="toggleSeleccionEntrada(ticket)">
-								{{ ticket.seleccionada ? 'Seleccionada' : 'Seleccionar' }}
+									{{ !ticket.disponible ? 'No disponible' : (ticket.seleccionada ? 'Seleccionada' : 'Seleccionar') }}
 							</button>
 						</div>
 					</article>
+				</div>
+
+				<!-- Controles de paginación -->
+				<div class="pagination-controls" *ngIf="ticketsDisponibles.length > 0">
+					<div class="pagination-info">
+						Mostrando {{ (currentPage - 1) * 5 + 1 }} - {{ Math.min(currentPage * 5, ticketsDisponibles.length) }} de {{ ticketsDisponibles.length }} entradas
+					</div>
+					<div class="pagination-buttons">
+						<button 
+							type="button"
+							class="btn-pagination"
+							[disabled]="currentPage === 1"
+							(click)="previousPage()">
+							← Anterior
+						</button>
+						
+						<div class="pagination-page-numbers">
+							<button
+								*ngFor="let page of getPageNumbers()"
+								type="button"
+								class="btn-page-number"
+								[class.active]="page === currentPage"
+								[disabled]="page === -1"
+								(click)="goToPage(page)">
+								{{ page === -1 ? '...' : page }}
+							</button>
+						</div>
+						
+						<button 
+							type="button"
+							class="btn-pagination"
+							[disabled]="currentPage === totalPages"
+							(click)="nextPage()">
+							Siguiente →
+						</button>
+					</div>
 				</div>
 
 				<ng-template #sinEntradasEnZona>

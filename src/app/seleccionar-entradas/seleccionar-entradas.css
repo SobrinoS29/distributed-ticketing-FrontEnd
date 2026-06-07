@@ -460,6 +460,17 @@
 	box-shadow: 0 0 0 2px rgba(68, 179, 106, 0.2), 0 20px 34px -22px rgba(16, 32, 51, 0.8);
 }
 
+.ticket-item.unavailable {
+	opacity: 0.72;
+	border-color: #d7dce4;
+	box-shadow: none;
+}
+
+.ticket-item.unavailable:hover {
+	transform: none;
+	box-shadow: none;
+}
+
 .ticket-band {
 	background: repeating-linear-gradient(
 		180deg,
@@ -477,6 +488,16 @@
 		#2f9b57 10px,
 		#47b96f 10px,
 		#47b96f 20px
+	);
+}
+
+.ticket-item.unavailable .ticket-band {
+	background: repeating-linear-gradient(
+		180deg,
+		#8f9aac 0,
+		#8f9aac 10px,
+		#b7c0cd 10px,
+		#b7c0cd 20px
 	);
 }
 
@@ -516,6 +537,29 @@
 	font-weight: 700;
 	color: #0a4f8a;
 	white-space: nowrap;
+}
+
+.ticket-status {
+	display: inline-flex;
+	align-items: center;
+	margin-top: 12px;
+	padding: 7px 10px;
+	border-radius: 999px;
+	background: #fff3f1;
+	color: #b42318;
+	font-size: 0.82rem;
+	font-weight: 700;
+}
+
+.ticket-item.unavailable .ticket-main,
+.ticket-item.unavailable .ticket-action {
+	filter: grayscale(0.15);
+}
+
+.ticket-item.unavailable .ticket-title,
+.ticket-item.unavailable .ticket-meta-grid,
+.ticket-item.unavailable .ticket-price {
+	color: #6c7787;
 }
 
 .ticket-meta-grid {
@@ -569,6 +613,82 @@
 	background: #277f48;
 	border-color: #277f48;
 }
+
+/* ============ Estilos de paginación ============ */
+
+.pagination-controls {
+	margin-top: 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 16px;
+	background: #f8fafc;
+	border-radius: 12px;
+	border: 1px solid var(--border);
+}
+
+.pagination-info {
+	text-align: center;
+	color: var(--text-soft);
+	font-size: 0.9rem;
+	font-weight: 500;
+}
+
+.pagination-buttons {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.btn-pagination,
+.btn-page-number {
+	border: 1px solid var(--border);
+	background: #ffffff;
+	color: var(--text);
+	border-radius: 8px;
+	padding: 8px 12px;
+	font-weight: 600;
+	font-size: 0.9rem;
+	cursor: pointer;
+	transition: all 120ms ease;
+}
+
+.btn-pagination:hover:not(:disabled),
+.btn-page-number:hover:not(:disabled) {
+	background: var(--accent);
+	color: white;
+	border-color: var(--accent);
+	transform: translateY(-1px);
+}
+
+.btn-pagination:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.btn-page-number.active {
+	background: var(--accent);
+	color: white;
+	border-color: var(--accent);
+	font-weight: 700;
+}
+
+.btn-page-number:disabled {
+	cursor: default;
+	background: transparent;
+	border: none;
+	color: var(--text-soft);
+}
+
+.pagination-page-numbers {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+/* ============================================ */
 
 .empty {
 	display: block;
@@ -631,5 +751,19 @@
 			'pista'
 			'stage'
 			'sur';
+	}
+
+	.pagination-buttons {
+		gap: 8px;
+	}
+
+	.btn-pagination,
+	.btn-page-number {
+		padding: 6px 10px;
+		font-size: 0.85rem;
+	}
+
+	.pagination-page-numbers {
+		gap: 4px;
 	}
 }

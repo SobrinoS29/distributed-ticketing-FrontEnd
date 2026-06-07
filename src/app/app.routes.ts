@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { Compra } from './compra/compra';
+import { Cola } from './cola/cola';
 import { Escenarios } from './escenarios/escenarios';
 import { SeleccionarEntradas } from './seleccionar-entradas/seleccionar-entradas';
 import { Login } from './login/login';
@@ -14,6 +15,10 @@ export const routes: Routes = [
     {
         path: 'compra',
         component: Compra
+    },
+    {
+        path: 'cola',
+        component: Cola
     },
     {
         path: 'seleccionarEntradas',

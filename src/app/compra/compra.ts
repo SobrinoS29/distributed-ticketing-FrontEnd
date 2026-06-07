@@ -201,7 +201,7 @@ export class Compra implements OnDestroy {
     }
 
     const infoPago = {
-      centimos : Math.floor(this.importeTotal * 100),  // Convertir el importe a céntimos (Stripe trabaja con la unidad más pequeña)
+      centimos : this.importeTotal,  // importeTotal ya está en céntimos (viene del backend)
     };
     this.pagosService.prepararPago(infoPago).subscribe({
       next: (response: string) => {

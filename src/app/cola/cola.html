@@ -1,0 +1,59 @@
+<section class="waiting-room">
+  <div class="hero-card">
+    <p class="eyebrow">Taquilla virtual</p>
+    <h1>Estás en la cola de acceso</h1>
+    <p class="subtitle">
+      {{ escenario?.nombre || 'Escenario' }} · {{ espectaculo?.artista || 'Espectáculo' }}
+    </p>
+    <p class="description">
+      Cuando tu turno se libere, podrás continuar con la selección de entradas.
+      La cola se actualiza automáticamente cada pocos segundos.
+    </p>
+  </div>
+
+  <div class="queue-grid">
+    <article class="queue-card status-card" [class.ready]="estaListo">
+      <div class="status-top">
+        <span class="status-chip" [class.ready]="estaListo">
+          {{ estaListo ? 'Turno disponible' : (estado?.status === 'PREOPEN' ? 'Cola cerrada' : 'En espera') }}
+        </span>
+        <span class="status-label">Tu posición</span>
+      </div>
+
+      <div class="position-block">
+        <span class="position-number">{{ estaListo ? '0' : personasDelante }}</span>
+        <span class="position-caption">personas delante</span>
+      </div>
+
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-bar" [style.width.%]="progresoVisual"></div>
+      </div>
+
+      <p class="status-message">{{ estado?.message || error || 'Preparando tu acceso...' }}</p>
+    </article>
+
+    <article class="queue-card info-card">
+      <h2>Información del turno</h2>
+      <div class="info-row">
+        <span class="info-label">Espectáculo</span>
+        <span class="info-value">{{ espectaculo?.artista || 'N/D' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Fecha</span>
+        <span class="info-value">{{ espectaculo?.fecha || 'N/D' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">{{ turnoFechaLabel }}</span>
+        <span class="info-value">{{ turnoExpiraTexto }}</span>
+      </div>
+
+      <button type="button" class="secondary-button" (click)="salirDeLaCola()">
+        Salir de la cola
+      </button>
+    </article>
+  </div>
+
+  <div class="loading-strip" *ngIf="cargando">
+    Actualizando tu posición en la cola...
+  </div>
+</section>

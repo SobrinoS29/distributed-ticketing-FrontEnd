@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SeleccionarEntradasService } from '../seleccionar-entradas.service';
 import { LoginService } from '../login.service';
+import { ColaService } from '../cola/cola.service';
 
 interface EntradaDisponibleTicket {
   entradaId: number;
@@ -11,6 +12,8 @@ interface EntradaDisponibleTicket {
   zona: number;
   seleccionada: boolean;
   token: string | "";
+  disponible: boolean;
+  mensajeEstado: string | null;
 }
 
 interface Espectaculo {
@@ -42,10 +45,12 @@ interface Escenario {
 export class SeleccionarEntradas implements OnInit, OnDestroy {
   private static readonly MAX_ENTRADAS_SELECCIONABLES = 10;
   private static readonly RESERVA_TTL_MS = 5 * 60 * 1000;  // TTL de 5 minutos para la sesión de reserva
+  private static readonly ITEMS_PER_PAGE = 5;  // Número de entradas por página
 
   userToken: string | null = null;
   espectaculo: Espectaculo | null = null;
   escenario: Escenario | null = null;
+  queueToken: string = '';
   mostrarSelectorZona = false;
   zonaSeleccionada: number | null = 0;
   cantidadEntradas = 1;
@@ -55,6 +60,10 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
   ticketsDisponibles: EntradaDisponibleTicket[] = [];
   tokenReserva: string = "";  // Variable Token que identifica todas las reservas del mismo cliente en esta sesión
 
+  // Propiedades de paginación
+  currentPage: number = 1;
+  Math = Math;  // Hacer disponible Math en el template
+
   private reservaTimeoutId: any = null;  // ID del timeout para poder limpiarlo
   readonly authTokenStorageKey: string = 'authToken';
 
@@ -62,6 +71,7 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private seleccionarEntradasService: SeleccionarEntradasService,
     private loginService: LoginService,
+    private colaService: ColaService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -71,11 +81,12 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
       const userTokenParam = sessionStorage.getItem(this.authTokenStorageKey)?.trim();  // Obtenemos el token de sesión del sessionStorage para verificar si el usuario está logeado, si no hay token o es una cadena vacía, consideramos que el usuario no está logeado
       const espectaculoParam = params.get('espectaculo');
       const escenarioParam = params.get('escenario');
+      const queueTokenParam = params.get('queueToken') ?? this.getStoredQueueToken();
       if (espectaculoParam && escenarioParam) {
         try {
-          this.userToken = userTokenParam ? decodeURIComponent(userTokenParam) : null;
-          this.espectaculo = JSON.parse(decodeURIComponent(espectaculoParam));
-          this.escenario = JSON.parse(decodeURIComponent(escenarioParam));
+          this.userToken = userTokenParam ? this.decodeParam(userTokenParam) : null;
+          this.espectaculo = JSON.parse(this.decodeParam(espectaculoParam));
+          this.escenario = JSON.parse(this.decodeParam(escenarioParam));
         } catch (error) {
           console.error('Error al parsear los parámetros de espectaculo y escenario:', error);
           this.espectaculo = null;
@@ -85,14 +96,115 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
         console.warn('No se recibieron los parámetros de espectaculo o escenario.');
         this.espectaculo = null;
         this.escenario = null;
+        return;
       }
+
+      if (!this.espectaculo || !this.escenario) {
+        return;
+      }
+
+      const espectaculoId = this.getEspectaculoIdNumerico();
+      if (espectaculoId === null) {
+        this.router.navigate(['/']);
+        return;
+      }
+
+      if (espectaculoId !== 1) {
+        this.iniciarTTLReserva();
+        return;
+      }
+
+      if (!queueTokenParam) {
+        this.redirigirACola();
+        return;
+      }
+
+      this.queueToken = queueTokenParam;
+      this.validarAccesoCola(queueTokenParam, espectaculoId);
     });
-    this.iniciarTTLReserva();
   }
 
   ngOnDestroy(): void {
     this.limpiarTTLReserva();
   }
+
+  // ============ Métodos de paginación ============
+
+  get paginatedTickets(): EntradaDisponibleTicket[] {
+    const startIndex = (this.currentPage - 1) * SeleccionarEntradas.ITEMS_PER_PAGE;
+    const endIndex = startIndex + SeleccionarEntradas.ITEMS_PER_PAGE;
+    return this.ticketsDisponibles.slice(startIndex, endIndex);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.ticketsDisponibles.length / SeleccionarEntradas.ITEMS_PER_PAGE);
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const totalPages = this.totalPages;
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Mostrar siempre: primera página, última página, y 3 páginas alrededor de la actual
+      const startPage = Math.max(1, this.currentPage - 1);
+      const endPage = Math.min(totalPages, this.currentPage + 1);
+
+      if (startPage > 1) {
+        pages.push(1);
+        if (startPage > 2) {
+          pages.push(-1); // -1 indica "..." (puntos suspensivos)
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          pages.push(-1); // -1 indica "..." (puntos suspensivos)
+        }
+        pages.push(totalPages);
+      }
+    }
+
+    return pages;
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.scrollToTicketList();
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.scrollToTicketList();
+    }
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.scrollToTicketList();
+    }
+  }
+
+  private scrollToTicketList(): void {
+    const ticketListElement = document.querySelector('.ticket-list-shell');
+    if (ticketListElement) {
+      ticketListElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // ============================================
 
   private iniciarTTLReserva(): void {
     this.reservaTimeoutId = setTimeout(() => {
@@ -114,6 +226,57 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
     }
   }
 
+  private validarAccesoCola(queueToken: string, espectaculoId: number): void {
+    this.colaService.obtenerEstado(queueToken).subscribe({
+      next: (estado) => {
+        if (!estado.canProceed || estado.espectaculoId !== espectaculoId) {
+          this.redirigirACola();
+          return;
+        }
+
+        try {
+          sessionStorage.setItem(`queueToken:${espectaculoId}`, queueToken);
+        } catch {
+          // Ignoramos errores de almacenamiento local.
+        }
+
+        this.iniciarTTLReserva();
+      },
+      error: () => {
+        this.redirigirACola();
+      }
+    });
+  }
+
+  private redirigirACola(): void {
+    if (!this.espectaculo || !this.escenario) {
+      this.router.navigate(['/']);
+      return;
+    }
+
+    this.router.navigate(['/cola'], {
+      queryParams: {
+        espectaculo: encodeURIComponent(JSON.stringify(this.espectaculo)),
+        escenario: encodeURIComponent(JSON.stringify(this.escenario)),
+        queueToken: this.queueToken || undefined,
+      },
+      replaceUrl: true,
+    });
+  }
+
+  private getStoredQueueToken(): string {
+    const espectaculoId = this.getEspectaculoIdNumerico();
+    if (espectaculoId === null) {
+      return '';
+    }
+
+    try {
+      return sessionStorage.getItem(`queueToken:${espectaculoId}`) ?? '';
+    } catch {
+      return '';
+    }
+  }
+
   toggleSelectorZona(): void {
     this.mostrarSelectorZona = !this.mostrarSelectorZona;
   }
@@ -121,6 +284,7 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
   seleccionarZona(zona: number): void {
     this.zonaSeleccionada = zona;
     this.cantidadEntradas = Math.max(1, this.cantidadEntradas);
+    this.currentPage = 1;  // Reset a la primera página al cambiar de zona
 
     const espectaculoId = this.getEspectaculoIdNumerico();
     if (espectaculoId === null) {
@@ -143,7 +307,9 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
           espectaculoId: fila[2],
           zona: fila[3],
           seleccionada: false,
-          token: ""
+          token: "",
+          disponible: true,
+          mensajeEstado: null,
         }));
         this.cargandoEntradasZona = false;
         this.cdr.detectChanges();
@@ -158,7 +324,7 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
   }
 
   get entradasDisponiblesEnZonaActual(): number {
-    return this.ticketsDisponibles.length;
+    return this.ticketsDisponibles.filter((ticket) => ticket.disponible).length;
   }
 
   get maxEntradasSeleccionables(): number {
@@ -191,6 +357,10 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
   }
 
   toggleSeleccionEntrada(ticket: EntradaDisponibleTicket): void {
+    if (!ticket.disponible) {
+      return;
+    }
+
     if (!ticket.seleccionada && this.entradasSeleccionadasCount >= SeleccionarEntradas.MAX_ENTRADAS_SELECCIONABLES) {
       return;
     }
@@ -209,6 +379,11 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
         },
         (error: any) => {
           console.error('Error al reservar la entrada:', error);
+          ticket.seleccionada = false;
+          ticket.token = '';
+          ticket.disponible = false;
+          ticket.mensajeEstado = 'Entrada ya no disponible';
+          this.cdr.detectChanges();
         }
       );
       return;
@@ -229,7 +404,7 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
   }
 
   estaBloqueadaSeleccion(ticket: EntradaDisponibleTicket): boolean {
-    return !ticket.seleccionada && this.entradasSeleccionadasCount >= SeleccionarEntradas.MAX_ENTRADAS_SELECCIONABLES;
+    return !ticket.disponible || (!ticket.seleccionada && this.entradasSeleccionadasCount >= SeleccionarEntradas.MAX_ENTRADAS_SELECCIONABLES);
   }
 
   trackByEntradaId(_: number, ticket: EntradaDisponibleTicket): number {
@@ -296,6 +471,34 @@ export class SeleccionarEntradas implements OnInit, OnDestroy {
       return Number.isFinite(parsedId) ? parsedId : null;
     }
     return null;
+  }
+
+  private decodeParam(param: string): string {
+    if (!param) {
+      return '';
+    }
+
+    try {
+      // Decodificar múltiples veces en caso de doble encoding
+      let decoded = param;
+      let previousDecoded = '';
+      
+      // Intentar decodificar hasta que no cambie más
+      while (decoded !== previousDecoded && decoded.includes('%')) {
+        try {
+          const temp = decodeURIComponent(decoded);
+          if (temp === decoded) break;
+          previousDecoded = decoded;
+          decoded = temp;
+        } catch {
+          break;
+        }
+      }
+      
+      return decoded;
+    } catch {
+      return param;
+    }
   }
 
   private normalizarFilas(response: unknown): Array<[number, number, number, number]> {

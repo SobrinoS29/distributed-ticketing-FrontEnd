@@ -42,15 +42,15 @@ The control flow diagram is split into three images:
 
 ### Part 1
 
-Image placeholder for the first part of the UML sequence diagram.
+<img width="2711" height="1930" alt="SequenceDiagram EsiEntradas Part1" src="https://github.com/user-attachments/assets/df69f175-bddf-4702-a5ce-24ea422d7db7" />
 
 ### Part 2
 
-Image placeholder for the second part of the UML sequence diagram.
+<img width="2710" height="2634" alt="SequenceDiagram EsiEntradas Part2" src="https://github.com/user-attachments/assets/97324704-7de2-49d3-9a37-00dc96d224e5" />
 
 ### Part 3
 
-Image placeholder for the third part of the UML sequence diagram.
+<img width="3395" height="3706" alt="SequenceDiagram EsiEntradas Part3" src="https://github.com/user-attachments/assets/cf9580a0-2937-48e3-98f9-aed0eeceaa76" />
 
 ## Key Frontend Flows
 
